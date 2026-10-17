@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gastos hormiga</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<div class="banner" role="note">
+  <p><strong>⚠️ Esta página es pública.</strong> Cualquier persona con este link puede ver tus gastos y cambiar tus presupuestos. No registres nada que no quieras que alguien más vea. Para cerrarla, sigue el paso extra de Cognito.</p>
+</div>
+
+<header>
+  <h1>Gastos hormiga</h1>
+  <p class="sub">Lo que se te fue en cafés, snacks y suscripciones.</p>
+</header>
+
+<main>
+  <section aria-labelledby="titulo-totales">
+    <h2 id="titulo-totales">Total por categoría</h2>
+    <p id="gran-total" class="gran-total" aria-live="polite">Cargando…</p>
+    <ul id="totales" class="totales"></ul>
+  </section>
+
+  <section aria-labelledby="titulo-presupuestos">
+    <h2 id="titulo-presupuestos">Presupuestos</h2>
+    <div id="presupuestos" aria-live="polite"><p class="nota">Cargando…</p></div>
+
+    <form id="form-presupuesto" class="form" novalidate>
+      <h3>Ponle tope a una categoría</h3>
+      <div class="campos">
+        <label>Categoría
+          <select name="categoria" required>
+            <option value="cafes">Cafés</option>
+            <option value="snacks">Snacks</option>
+            <option value="transporte">Transporte</option>
+            <option value="suscripciones">Suscripciones</option>
+            <option value="otros">Otros</option>
+          </select>
+        </label>
+        <label>Tope en pesos
+          <input name="tope" type="number" inputmode="decimal" min="1" step="1" required placeholder="80">
+        </label>
+        <label>Periodo
+          <select name="periodo" required>
+            <option value="semana">A la semana</option>
+            <option value="mes">Al mes</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">Guardar presupuesto</button>
+      <p id="estado-form" class="estado" role="status"></p>
+    </form>
+  </section>
+
+  <section aria-labelledby="titulo-lista">
+    <h2 id="titulo-lista">Tus gastos</h2>
+    <div class="tabla-wrap" role="region" aria-labelledby="titulo-lista" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Fecha</th><th scope="col">Descripción</th><th scope="col">Categoría</th><th scope="col" class="num">Monto</th></tr></thead>
+        <tbody id="lista"><tr><td colspan="4">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer><p>Hecho en el workshop de gastos hormiga con Kiro y AWS.</p></footer>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

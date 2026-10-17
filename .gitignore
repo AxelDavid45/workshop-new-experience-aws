@@ -1,0 +1,6 @@
+node_modules/
+.aws-sam/
+.env
+.DS_Store
+# La genera pnpm subir-pagina con la URL de tu API; no se versiona.
+web/config.js

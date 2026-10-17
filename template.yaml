@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Gastos hormiga - API para registrar tus gastos desde el teléfono
+
+Parameters:
+  VersionKey:
+    Type: String
+    Default: '1'
+    Description: Súbele uno para rotar la API key (lo hace pnpm rotar-key)
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Architectures: [arm64]
+    MemorySize: 256
+    Timeout: 10
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref GastosTable
+        ZONA_HORARIA: America/Mexico_City
+    Tags:
+      workshop: gastos-hormiga
+
+Resources:
+  # La tabla donde viven tus gastos. No se toca: si cambia, se borran tus gastos.
+  GastosTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-gastos
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      Tags:
+        - Key: workshop
+          Value: gastos-hormiga
+
+  # REST API (no HTTP API): los usage plans y las API keys solo existen en REST.
+  GastosApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v1
+      Auth:
+        ApiKeyRequired: false # por default abierto; el POST lo pide aparte
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,x-api-key,x-origen'"
+        AllowMethods: "'GET,POST,PUT,OPTIONS'"
+      # Throttling del stage: aplica a todos, con o sin key. Va por debajo de las
+      # 10 ejecuciones concurrentes de Lambda que trae una cuenta nueva, para que
+      # API Gateway responda 429 antes de que Lambda se sature y responda 500.
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 5
+      Tags:
+        workshop: gastos-hormiga
+
+  # La API key que manda tu Atajo en el header x-api-key.
+  GastosApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn: GastosApiv1Stage
+    Properties:
+      Name: !Sub ${AWS::StackName}-key-${VersionKey}
+      Enabled: true
+
+  # El usage plan limita a quien trae la key: pocas peticiones por segundo y una cuota diaria.
+  GastosUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: GastosApiv1Stage
+    Properties:
+      UsagePlanName: !Sub ${AWS::StackName}-plan
+      ApiStages:
+        - ApiId: !Ref GastosApi
+          Stage: v1
+      Throttle:
+        RateLimit: 2
+        BurstLimit: 4
+      Quota:
+        Limit: 500
+        Period: DAY
+
+  GastosUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref GastosApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref GastosUsagePlan
+
+  # POST /gastos: registra un gasto. Solo puede escribir en la tabla.
+  RegistrarGastoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-registrar
+      CodeUri: src/
+      Handler: registrar.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: !GetAtt GastosTable.Arn
+      Events:
+        Registrar:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GastosApi
+            Path: /gastos
+            Method: post
+            Auth:
+              ApiKeyRequired: true
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Format: esm
+        OutExtension: [.js=.mjs]
+        Target: es2022
+        External: ['@aws-sdk/*']
+        EntryPoints: [handlers/registrar.ts]
+
+  # GET /gastos: lista tus gastos. Solo puede leer la tabla.
+  ListarGastosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-listar
+      CodeUri: src/
+      Handler: listar.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: dynamodb:Query
+              Resource: !GetAtt GastosTable.Arn
+      Events:
+        Listar:
+          Type: Api
+          Properties:
+            RestApiId: !Ref GastosApi
+            Path: /gastos
+            Method: get
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Format: esm
+        OutExtension: [.js=.mjs]
+        Target: es2022
+        External: ['@aws-sdk/*']
+        EntryPoints: [handlers/listar.ts]
+
+  # Los logs se guardan 14 días y se borran junto con el stack.
+  RegistrarGastoLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-registrar
+      RetentionInDays: 14
+
+  ListarGastosLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-listar
+      RetentionInDays: 14
+
+Outputs:
+  ApiUrl:
+    Description: URL base de tu API
+    Value: !Sub https://${GastosApi}.execute-api.${AWS::Region}.amazonaws.com/v1
+  ApiKeyId:
+    Description: ID de la API key (el valor lo ves en la consola de API Gateway o con pnpm datos)
+    Value: !Ref GastosApiKey
+  TablaGastos:
+    Description: Nombre de la tabla de DynamoDB
+    Value: !Ref GastosTable

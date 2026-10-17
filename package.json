@@ -1,0 +1,36 @@
+{
+  "name": "workshop-new-experience-aws",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workshop: construye tu app de gastos hormiga con Kiro y la nueva experiencia de AWS (SAM, API Gateway, Lambda y DynamoDB)",
+  "type": "module",
+  "scripts": {
+    "build": "sam build",
+    "sync": "sam sync --watch",
+    "verify": "tsx scripts/verify.ts",
+    "doctor": "tsx scripts/doctor.ts",
+    "datos": "tsx scripts/datos.ts",
+    "subir-pagina": "tsx scripts/subir-pagina.ts",
+    "limpiar": "tsx scripts/limpiar.ts",
+    "rotar-key": "tsx scripts/rotar-key.ts",
+    "crear-usuario": "tsx scripts/crear-usuario.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1146.0",
+    "@aws-sdk/lib-dynamodb": "3.1146.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.164",
+    "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.5.0"
+}

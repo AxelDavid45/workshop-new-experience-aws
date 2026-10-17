@@ -1,0 +1,17 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "gastos-hormiga"
+region = "us-east-2"
+profile = "gastos-hormiga"      # mismo nombre que en aws login --profile
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true               # SAM crea y usa su bucket de artefactos
+confirm_changeset = true        # el deploy pregunta "Deploy this changeset? [y/N]"
+tags = "workshop=\"gastos-hormiga\""
+
+[default.sync.parameters]
+watch = true
+capabilities = "CAPABILITY_IAM"
+tags = "workshop=\"gastos-hormiga\""
