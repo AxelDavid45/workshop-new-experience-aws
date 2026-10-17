@@ -184,7 +184,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           const { Account } = await aws<{ Account: string }>(['sts', 'get-caller-identity'])
           const r = await aws<{ Budgets?: { BudgetName: string }[] }>(['budgets', 'describe-budgets', '--account-id', Account], { region: 'us-east-1' })
           const nombres = (r.Budgets ?? []).map((b) => b.BudgetName)
-          esperar(nombres.length > 0, 'No encontré ningún budget', 'Crea el Monthly cost budget de USD 100 desde la actividad del módulo 2')
+          esperar(nombres.length > 0, 'No encontré ningún budget', 'Crea el Zero spend budget desde la actividad del módulo 2')
           return nombres.join(', ')
         },
       },
