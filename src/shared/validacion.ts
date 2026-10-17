@@ -19,6 +19,9 @@ export function validarGasto(body: Record<string, unknown> | null): Resultado<Ga
   if (typeof monto !== 'number' || !Number.isFinite(monto)) {
     return { ok: false, error: 'monto tiene que ser un número' }
   }
+  if (monto <= 0) {
+    return { ok: false, error: 'monto tiene que ser mayor a 0' }
+  }
   if (monto > MONTO_MAXIMO) {
     return { ok: false, error: `monto no puede ser mayor a ${MONTO_MAXIMO}` }
   }

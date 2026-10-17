@@ -33,7 +33,7 @@ Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login a
 
 ## Tasks
 
-- [ ] 1. Escribir las Lambdas de gastos (módulo 4)
+- [x] 1. Escribir las Lambdas de gastos (módulo 4)
   - Escribe el cuerpo de `src/handlers/registrar.ts` y `src/handlers/listar.ts` siguiendo la sección **Gastos (tarea 1)** de `design.md`. Hoy los dos responden 501.
   - Usa los helpers que ya existen en `src/shared/` (`db.ts`, `http.ts`, `validacion.ts`). No crees helpers nuevos.
   - No toques `template.yaml`: las rutas y los permisos ya están.
