@@ -12,6 +12,7 @@
     "datos": "tsx scripts/datos.ts",
     "subir-pagina": "tsx scripts/subir-pagina.ts",
     "limpiar": "tsx scripts/limpiar.ts",
+    "limpiar-practica": "tsx scripts/limpiar-practica.ts",
     "rotar-key": "tsx scripts/rotar-key.ts",
     "crear-usuario": "tsx scripts/crear-usuario.ts",
     "test": "vitest run",

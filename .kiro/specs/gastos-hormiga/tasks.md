@@ -17,15 +17,15 @@ Cada tarea es un módulo del workshop. Quien la ejecuta está aprendiendo y va a
   - Al terminar, corre `sam validate --lint`.
   - _Requisitos: 3.1, 3.2, 3.3_
 
-- [ ] 3. Presupuestos por categoría (módulo 7)
+- [ ]* 3. Presupuestos por categoría (paso extra A)
   - Crea `src/handlers/guardar-presupuesto.ts` y `src/handlers/listar-presupuestos.ts` siguiendo la sección **Presupuestos (tarea 3)** de `design.md` y el estilo de los handlers de gastos.
   - Agrega a `template.yaml` las dos Lambdas, sus eventos `PUT /presupuestos/{categoria}` y `GET /presupuestos`, y su log group, como los de gastos.
   - Agrega un test por handler en `tests/`, con `db.send` mockeado como en `tests/gastos.test.ts`.
-  - No arregles `tests/periodo.test.ts` ni `src/shared/periodo.ts`. Ese bug de zona horaria lo arregla el asistente a mano.
+  - Quita el `.skip` de los tres tests del periodo en `tests/periodo.test.ts`, pero no arregles `src/shared/periodo.ts`. Ese bug de zona horaria lo arregla el asistente a mano.
   - _Requisitos: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ]* 4. Login con Cognito (paso extra A)
-  - Sigue **Paso extra (tarea 4)** de `design.md`: un User Pool sin registro abierto, un app client sin secreto con `USER_PASSWORD_AUTH` y la callback URL de `PaginaUrl`, y un `CognitoAuthorizer` en `GastosApi` para los `GET` y el `PUT`.
+- [ ]* 4. Login con Cognito (paso extra B)
+  - Sigue **Paso extra B (tarea 4)** de `design.md`: un User Pool sin registro abierto, un app client sin secreto con `USER_PASSWORD_AUTH` y la callback URL de `PaginaUrl`, y un `CognitoAuthorizer` en `GastosApi` para los `GET` y el `PUT`.
   - El `POST /gastos` sigue solo con API key.
   - Agrega los outputs `UserPoolId` y `UserPoolClientId`.
   - Actualiza `web/app.js` para iniciar sesión con el login administrado de Cognito y mandar el token en el header `Authorization`, sin usar `innerHTML` con datos de la API.

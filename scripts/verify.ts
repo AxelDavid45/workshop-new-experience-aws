@@ -341,8 +341,8 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
       },
     ],
   },
-  '7': {
-    titulo: 'Presupuestos por categoría',
+  presupuestos: {
+    titulo: 'Paso extra A: presupuestos por categoría',
     pruebas: [
       {
         nombre: 'Los tests de zona horaria pasan',

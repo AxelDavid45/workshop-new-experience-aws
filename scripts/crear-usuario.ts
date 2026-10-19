@@ -12,7 +12,7 @@ async function main() {
   titulo('Crear tu usuario de Cognito')
   const s = await salidasDelStack()
   if (!s.UserPoolId) {
-    falla('Tu stack no tiene un User Pool', 'Esto es del paso extra A. Empieza con git switch base-completa y sigue la guía')
+    falla('Tu stack no tiene un User Pool', 'Esto es del paso extra B. Empieza con git switch extra-presupuestos y sigue la guía')
     process.exitCode = 1
     return
   }

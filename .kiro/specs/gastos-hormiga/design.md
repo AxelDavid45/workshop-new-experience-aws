@@ -4,7 +4,7 @@ Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se
 
 ## Infraestructura
 
-- Toda la infraestructura vive en `template.yaml`, con AWS SAM. No hay CDK, ni Terraform, ni recursos creados a mano en la consola.
+- Toda la infraestructura de la app final vive en `template.yaml`, con AWS SAM. La Lambda y la tabla de la práctica manual son efímeras: usan nombres fijos y se borran con `pnpm limpiar-practica` antes del primer deploy.
 - Stack `gastos-hormiga` en la Región del proyecto. Los dos salen de `samconfig.toml`.
 - Todo recurso que acepte tags lleva `workshop=gastos-hormiga`.
 - Runtime fijado en `Globals.Function.Runtime: nodejs24.x`, arquitectura `arm64`.
@@ -22,7 +22,7 @@ Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se
 
 ### KeySchema
 
-Una sola tabla para gastos y presupuestos, con llave compuesta. Este esquema no se modifica.
+Una sola tabla para los gastos de la ruta base y los presupuestos opcionales, con llave compuesta. Este esquema no se modifica.
 
 | Atributo | Tipo | Rol |
 |---|---|---|
@@ -36,7 +36,7 @@ Una sola tabla para gastos y presupuestos, con llave compuesta. Este esquema no 
 
 Como la `sk` de los gastos empieza con la fecha, un `Query` con `pk = GASTOS AND sk >= GASTO#<inicio>` regresa los gastos desde una fecha, ya ordenados. Así se calcula lo gastado en un periodo sin `Scan` y sin borrar nada. Los helpers están en `src/shared/db.ts`.
 
-No se agregan índices secundarios (GSI ni LSI) en la ruta base.
+No se agregan índices secundarios (GSI ni LSI).
 
 ## API
 
@@ -51,8 +51,8 @@ No se agregan índices secundarios (GSI ni LSI) en la ruta base.
 |---|---|---|---|
 | `POST /gastos` | API key | `RegistrarGastoFunction` | `dynamodb:PutItem` sobre `GastosTable` |
 | `GET /gastos` | Abierto | `ListarGastosFunction` | `dynamodb:Query` sobre `GastosTable` |
-| `PUT /presupuestos/{categoria}` | Abierto | `GuardarPresupuestoFunction` | `dynamodb:PutItem` sobre `GastosTable` |
-| `GET /presupuestos` | Abierto | `ListarPresupuestosFunction` | `dynamodb:Query` sobre `GastosTable` |
+| `PUT /presupuestos/{categoria}` (extra A) | Abierto | `GuardarPresupuestoFunction` | `dynamodb:PutItem` sobre `GastosTable` |
+| `GET /presupuestos` (extra A) | Abierto | `ListarPresupuestosFunction` | `dynamodb:Query` sobre `GastosTable` |
 
 Cada Lambda tiene solo los permisos de su fila, escritos como `Statement` explícito. Nada de `DynamoDBCrudPolicy` ni `Resource: '*'`.
 
@@ -81,7 +81,7 @@ Categorías fijas: `cafes`, `snacks`, `transporte`, `suscripciones`, `otros` (`s
 - Logs en una línea de JSON con un campo `evento` (por ejemplo `{"evento":"gasto_registrado"}`). Nunca se loguea el body completo ni headers.
 - Cada handler nuevo lleva su test en `tests/`, con `db.send` reemplazado por un mock (ver `tests/gastos.test.ts`).
 
-## Presupuestos (tarea 3)
+## Paso extra A: presupuestos (tarea 3)
 
 - `GuardarPresupuestoFunction` en `src/handlers/guardar-presupuesto.ts`.
 - `ListarPresupuestosFunction` en `src/handlers/listar-presupuestos.ts`.
@@ -119,6 +119,6 @@ Outputs que necesitan `pnpm subir-pagina` y `pnpm verify 6`:
 
 SAM no sube los archivos de `web/`. Eso lo hace `pnpm subir-pagina`, que también escribe `web/config.js` con la URL de la API.
 
-## Paso extra (tarea 4)
+## Paso extra B: login con Cognito (tarea 4)
 
-- **Cognito:** `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
+- `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.

@@ -79,9 +79,11 @@ async function cargarGastos() {
 }
 
 async function cargarPresupuestos() {
+  const seccion = document.getElementById('seccion-presupuestos')
   const contenedor = document.getElementById('presupuestos')
   try {
     const { presupuestos } = await pedir('/presupuestos')
+    seccion.hidden = false
     contenedor.replaceChildren()
     if (presupuestos.length === 0) {
       contenedor.append(el('p', 'Todavía no tienes presupuestos. Crea el primero con el formulario.', 'nota'))
@@ -104,11 +106,9 @@ async function cargarPresupuestos() {
       lista.append(item)
     }
     contenedor.append(lista)
-  } catch (err) {
-    contenedor.replaceChildren(
-      el('p', 'Todavía no hay backend de presupuestos (lo construyes en el módulo 7).', 'nota aviso'),
-      el('p', 'Detalle: ' + err.message, 'nota'),
-    )
+  } catch {
+    seccion.hidden = true
+    contenedor.replaceChildren()
   }
 }
 

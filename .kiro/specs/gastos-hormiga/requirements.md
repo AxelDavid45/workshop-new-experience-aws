@@ -55,7 +55,7 @@ Ruta: `GET /gastos`, abierto (sin API key).
 2. Los archivos de `web/` DEBEN vivir en un bucket que no se pueda leer directo: pedir un archivo a S3 sin pasar por CloudFront responde 403.
 3. LA PÁGINA DEBE responder con el header `X-Robots-Tag: noindex`.
 
-### Requisito 4: Presupuestos por categoría
+### Requisito 4: Presupuestos por categoría (paso extra A)
 
 **Historia:** Como persona que gasta de más en cafés, quiero ponerme un tope por semana, para saber cuándo parar.
 
@@ -91,7 +91,7 @@ Rutas: `PUT /presupuestos/{categoria}` y `GET /presupuestos`, abiertas.
 5. Un presupuesto DEBE "reiniciarse" porque `gastado` se calcula por rango de fechas, nunca borrando gastos. El historial completo se conserva.
 6. Las semanas DEBEN empezar el lunes a las 00:00 y los meses el día 1 a las 00:00, en `America/Mexico_City`. Un café del domingo a las 8 pm cuenta en la semana que termina ese domingo, aunque en UTC ya sea lunes. Lo revisa `tests/periodo.test.ts`.
 
-### Requisito 5: Login con Cognito (paso extra A)
+### Requisito 5: Login con Cognito (paso extra B)
 
 1. `GET /gastos`, `GET /presupuestos` y `PUT /presupuestos/{categoria}` DEBEN pedir un token de Cognito en el header `Authorization`. Sin token responden 401.
 2. `POST /gastos` DEBE seguir con API key, para que el Atajo no se rompa.
