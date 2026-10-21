@@ -48,7 +48,7 @@ Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login a
   - Al terminar, corre `pnpm typecheck`.
   - _Requisitos: 3.1, 3.2_
 
-- [ ]* 3. Login con Cognito (paso extra)
+- [x]* 3. Login con Cognito (paso extra)
   - Sigue **Paso extra: login con Cognito (tarea 3)** de `design.md`: agrega el parámetro `FrontendUrl`, un User Pool sin registro abierto, un app client sin secreto con `USER_PASSWORD_AUTH`, `PreventUserExistenceErrors: ENABLED` y esa URL como callback, y un `CognitoAuthorizer` en `GastosApi` para `GET /gastos`.
   - El `POST /gastos` sigue solo con API key. Este ejercicio no separa datos por usuario: no lo presentes como una solución multiusuario.
   - Agrega los outputs `UserPoolId` y `UserPoolClientId`.

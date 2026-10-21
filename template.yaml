@@ -7,6 +7,9 @@ Parameters:
     Type: String
     Default: '1'
     Description: Súbele uno para rotar la API key (lo hace pnpm rotar-key)
+  FrontendUrl:
+    Type: String
+    Description: URL HTTPS de tu página publicada en Amplify Hosting
 
 Globals:
   Function:
@@ -41,17 +44,62 @@ Resources:
         - Key: workshop
           Value: gastos-hormiga
 
+  # El registro no está abierto: el usuario se crea con pnpm crear-usuario.
+  GastosUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-usuarios
+      UsernameAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UserPoolTags:
+        workshop: gastos-hormiga
+
+  # Cliente público: el navegador nunca recibe ni necesita un client secret.
+  GastosUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-pagina
+      UserPoolId: !Ref GastosUserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+      CallbackURLs:
+        - !Ref FrontendUrl
+      LogoutURLs:
+        - !Ref FrontendUrl
+      SupportedIdentityProviders:
+        - COGNITO
+
+  # El AccountId evita que los asistentes compitan por el mismo prefijo de dominio.
+  GastosUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub ${AWS::StackName}-${AWS::AccountId}
+      ManagedLoginVersion: 2
+      UserPoolId: !Ref GastosUserPool
+
   # REST API (no HTTP API): los usage plans y las API keys solo existen en REST.
   GastosApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: v1
       Auth:
-        # GET queda público solo en este workshop con datos ficticios.
+        # En este paso extra, GET usa Cognito y POST mantiene su API key.
         ApiKeyRequired: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt GastosUserPool.Arn
       Cors:
         AllowOrigin: "'*'"
-        AllowHeaders: "'Content-Type,x-api-key,x-origen'"
+        AllowHeaders: "'Content-Type,x-api-key,x-origen,Authorization'"
         AllowMethods: "'GET,POST,OPTIONS'"
       MethodSettings:
         - ResourcePath: '/*'
@@ -124,7 +172,7 @@ Resources:
         External: ['@aws-sdk/*']
         EntryPoints: [handlers/registrar.ts]
 
-  # GET /gastos: lista tus gastos. Solo puede leer la tabla.
+  # GET /gastos: lista tus gastos y necesita un token de Cognito.
   ListarGastosFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -143,6 +191,8 @@ Resources:
             RestApiId: !Ref GastosApi
             Path: /gastos
             Method: get
+            Auth:
+              Authorizer: CognitoAuthorizer
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -175,3 +225,12 @@ Outputs:
   TablaGastos:
     Description: Nombre de la tabla de DynamoDB
     Value: !Ref GastosTable
+  UserPoolId:
+    Description: ID del User Pool de Cognito
+    Value: !Ref GastosUserPool
+  UserPoolClientId:
+    Description: ID del app client público de Cognito
+    Value: !Ref GastosUserPoolClient
+  CognitoDomain:
+    Description: Dominio del login administrado de Cognito
+    Value: !Sub https://${GastosUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com

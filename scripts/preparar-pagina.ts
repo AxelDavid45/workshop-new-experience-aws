@@ -1,6 +1,7 @@
 // pnpm preparar-pagina
-// Escribe web/config.js con la URL de tu API. Después lo agregas de forma
-// explícita, haces commit y push; Amplify Hosting publica la página.
+// Escribe web/config.js con la URL de tu API y los valores públicos de Cognito.
+// Después lo agregas de forma explícita, haces commit y push; Amplify publica
+// la página.
 
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -17,9 +18,16 @@ async function main() {
     return
   }
 
-  const config = `// Lo genera pnpm preparar-pagina. No lo edites a mano.\nexport const API_URL = ${JSON.stringify(s.ApiUrl)}\n`
+  const config = [
+    '// Lo genera pnpm preparar-pagina. No lo edites a mano.',
+    `export const API_URL = ${JSON.stringify(s.ApiUrl)}`,
+    `export const COGNITO_DOMAIN = ${JSON.stringify(s.CognitoDomain ?? '')}`,
+    `export const COGNITO_CLIENT_ID = ${JSON.stringify(s.UserPoolClientId ?? '')}`,
+    '',
+  ].join('\n')
   writeFileSync(path.join(ROOT, 'web', 'config.js'), config)
   ok('web/config.js apunta a tu API')
+  if (s.CognitoDomain && s.UserPoolClientId) ok('web/config.js también tiene el login de Cognito')
 
   console.log('\nAhora guarda y sube este cambio a tu fork:')
   console.log(gris('  git add -f web/config.js'))

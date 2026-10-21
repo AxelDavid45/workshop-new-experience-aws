@@ -6,6 +6,7 @@ export interface Salidas {
   TablaGastos?: string
   UserPoolId?: string
   UserPoolClientId?: string
+  CognitoDomain?: string
   [clave: string]: string | undefined
 }
 
