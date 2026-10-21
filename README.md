@@ -1,4 +1,6 @@
-# ¿En qué se te va el dinero? Construye tu app de gastos hormiga con Kiro y la nueva experiencia de AWS
+# ¿En qué se te va el dinero? Construye una app de gastos hormiga con IA y AWS
+
+**Versión del material: v5**
 
 Repo del workshop donde construyes una app para registrar tus gastos hormiga desde la pantalla de bloqueo de tu teléfono, con AWS SAM y Kiro.
 
@@ -33,6 +35,7 @@ pnpm verify 0
 | `main`               | El punto de partida del módulo 0                                                     |
 | `modulo-4`           | Módulo 4 terminado: las Lambdas de gastos escritas y los montos negativos rechazados |
 | `modulo-6`           | Módulo 6 terminado: configuración de Amplify Hosting para la página                  |
+| `extra-cognito`      | Paso extra terminado: login con Cognito y callback de Amplify                         |
 
 `GastosTable` tiene el mismo logical ID y nombre en todas las ramas, así que cambiar de rama y volver a desplegar actualiza tu stack sin borrar tus gastos.
 
