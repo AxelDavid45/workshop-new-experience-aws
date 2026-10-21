@@ -25,37 +25,6 @@
     <ul id="totales" class="totales"></ul>
   </section>
 
-  <section id="seccion-presupuestos" aria-labelledby="titulo-presupuestos" hidden>
-    <h2 id="titulo-presupuestos">Presupuestos</h2>
-    <div id="presupuestos" aria-live="polite"><p class="nota">Cargando…</p></div>
-
-    <form id="form-presupuesto" class="form" novalidate>
-      <h3>Ponle tope a una categoría</h3>
-      <div class="campos">
-        <label>Categoría
-          <select name="categoria" required>
-            <option value="cafes">Cafés</option>
-            <option value="snacks">Snacks</option>
-            <option value="transporte">Transporte</option>
-            <option value="suscripciones">Suscripciones</option>
-            <option value="otros">Otros</option>
-          </select>
-        </label>
-        <label>Tope en pesos
-          <input name="tope" type="number" inputmode="decimal" min="1" step="1" required placeholder="80">
-        </label>
-        <label>Periodo
-          <select name="periodo" required>
-            <option value="semana">A la semana</option>
-            <option value="mes">Al mes</option>
-          </select>
-        </label>
-      </div>
-      <button type="submit">Guardar presupuesto</button>
-      <p id="estado-form" class="estado" role="status"></p>
-    </form>
-  </section>
-
   <section aria-labelledby="titulo-lista">
     <h2 id="titulo-lista">Tus gastos</h2>
     <div class="tabla-wrap" role="region" aria-labelledby="titulo-lista" tabindex="0">
@@ -69,7 +38,6 @@
 
 <footer><p>Hecho en el workshop de gastos hormiga con Kiro y AWS.</p></footer>
 
-<script src="config.js"></script>
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

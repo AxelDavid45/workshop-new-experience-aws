@@ -10,7 +10,7 @@
     "verify": "tsx scripts/verify.ts",
     "doctor": "tsx scripts/doctor.ts",
     "datos": "tsx scripts/datos.ts",
-    "subir-pagina": "tsx scripts/subir-pagina.ts",
+    "preparar-pagina": "tsx scripts/preparar-pagina.ts",
     "limpiar": "tsx scripts/limpiar.ts",
     "limpiar-practica": "tsx scripts/limpiar-practica.ts",
     "rotar-key": "tsx scripts/rotar-key.ts",

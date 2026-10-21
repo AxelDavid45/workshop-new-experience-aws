@@ -25,7 +25,7 @@ export async function pedir(
   try {
     json = JSON.parse(texto)
   } catch {
-    // no era JSON (HTML de CloudFront, por ejemplo)
+    // no era JSON (por ejemplo, HTML de una página estática)
   }
   return { status: res.status, headers: res.headers, texto, json }
 }

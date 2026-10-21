@@ -4,7 +4,6 @@
   --muted: #4a4a4a;
   --border: #767676;
   --soft: #f3efe4;
-  --accent: #2e4a8c;
   --warn-bg: #fff1c2;
   --warn-border: #8a6100;
   --focus: #b35900;
@@ -18,7 +17,6 @@
     --muted: #c4c4c4;
     --border: #8c8c8c;
     --soft: #1f1f1f;
-    --accent: #8fb0ff;
     --warn-bg: #3a2d00;
     --warn-border: #ffcc66;
     --focus: #ffcc66;
@@ -55,19 +53,6 @@ h3 { margin: 0 0 0.75rem; font-size: 1.1rem; }
 .gran-total { font-size: 1.25rem; font-weight: 700; }
 .totales { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.75rem; }
 .totales li { border: 2px solid var(--border); border-radius: 4px; padding: 0.75rem; display: flex; flex-direction: column; }
-
-.barras { list-style: none; padding: 0; display: grid; gap: 1rem; }
-.barra-encabezado { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-weight: 600; }
-progress { width: 100%; height: 1.25rem; accent-color: var(--accent); }
-.nota { color: var(--muted); margin: 0.25rem 0; }
-.aviso { color: var(--fg); font-weight: 600; }
-
-.form { margin-top: 1.5rem; border: 2px solid var(--border); border-radius: 4px; padding: 1rem; background: var(--soft); }
-.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
-label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; }
-input, select, button { font: inherit; padding: 0.5rem; border: 2px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--fg); }
-button { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; cursor: pointer; }
-.estado { min-height: 1.6em; margin: 0.5rem 0 0; }
 
 .tabla-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; }

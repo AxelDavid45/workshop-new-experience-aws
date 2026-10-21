@@ -1,13 +1,13 @@
-// pnpm limpiar              borra TODA tu app (página, API, Lambdas y tabla con tus gastos)
+// pnpm limpiar              borra el backend: API, Lambdas y tabla con tus gastos.
+// El hosting vive en Amplify: al final eliminas esa app desde la consola de AWS.
 // pnpm limpiar --solo-extras deja tu app y revisa lo que sobró de las actividades del módulo 2
 //
-// CloudFormation no puede borrar un bucket que tiene archivos, por eso primero
-// vaciamos el bucket de la página y luego corremos sam delete.
+// SAM borra los recursos declarados en template.yaml; Amplify Hosting se limpia
+// por separado porque se conecta a tu repositorio de GitHub.
 
 import { spawn } from 'node:child_process'
 import { CONFIG, ROOT, aws } from './lib/aws.ts'
 import { argumentos, aviso, gris, ok, preguntar, rojo, titulo } from './lib/consola.ts'
-import { describirStack } from './lib/stack.ts'
 
 async function confirmar(pregunta: string): Promise<boolean> {
   return /^s(i|í)?$/i.test(await preguntar(`${pregunta} [s/N] `))
@@ -60,30 +60,17 @@ async function soloExtras() {
   }
 
   if (encontrados === 0) ok('No quedó nada prendido de las actividades. Tu app sigue intacta.')
-  console.log(
-    gris(
-      '\nEl bucket aws-sam-cli-managed-default-... es donde SAM sube tu código antes de cada deploy.\n' +
-        'Pesa poco y lo necesitas mientras tu app exista. Si un día borras todo, bórralo desde la consola de\n' +
-        'CloudFormation (stack aws-sam-cli-managed-default) después de vaciar el bucket.',
-    ),
-  )
 }
 
 async function todo(sinPreguntar: boolean) {
   titulo(`Borrar ${CONFIG.stack} completo`)
-  console.log(rojo('Esto borra tu API, tus Lambdas, tu página y la tabla con TODOS tus gastos. No se puede deshacer.'))
+  console.log(rojo('Esto borra tu API, tus Lambdas y la tabla con TODOS tus gastos. No se puede deshacer. La app de Amplify se borra después desde la consola.'))
   if (!sinPreguntar) {
     const respuesta = await preguntar(`Escribe ${CONFIG.stack} para confirmar: `)
     if (respuesta !== CONFIG.stack) {
       console.log('No borré nada.')
       return
     }
-  }
-
-  const { salidas } = await describirStack()
-  if (salidas.PaginaBucket) {
-    await aws(['s3', 'rm', `s3://${salidas.PaginaBucket}`, '--recursive'])
-    ok(`Bucket de la página vacío (${salidas.PaginaBucket})`)
   }
 
   const codigo = await new Promise<number>((resolve) => {
@@ -94,7 +81,7 @@ async function todo(sinPreguntar: boolean) {
     })
     sam.on('close', (c) => resolve(c ?? 1))
   })
-  if (codigo === 0) ok('Stack borrado. Corre pnpm limpiar --solo-extras para revisar lo demás.')
+  if (codigo === 0) ok('Backend borrado. Ahora elimina la app de Amplify desde la consola de AWS y corre pnpm limpiar --solo-extras para revisar lo demás.')
   process.exitCode = codigo
 }
 

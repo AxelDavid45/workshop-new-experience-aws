@@ -1,5 +1,5 @@
 // pnpm crear-usuario
-// Paso extra A (Cognito). No hay registro abierto: tu usuario lo creas tú con
+// Paso extra de Cognito. No hay registro abierto: tu usuario lo creas tú con
 // tus credenciales de AWS. Cognito te manda una contraseña temporal al correo.
 
 import { aws } from './lib/aws.ts'
@@ -12,7 +12,7 @@ async function main() {
   titulo('Crear tu usuario de Cognito')
   const s = await salidasDelStack()
   if (!s.UserPoolId) {
-    falla('Tu stack no tiene un User Pool', 'Esto es del paso extra B. Empieza con git switch extra-presupuestos y sigue la guía')
+    falla('Tu stack no tiene un User Pool', 'Esto es del paso extra de Cognito. Sigue la guía después del módulo 6.')
     process.exitCode = 1
     return
   }

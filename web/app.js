@@ -1,9 +1,11 @@
 // Página de gastos hormiga. JavaScript sin build ni dependencias, para que lo
 // leas completo en un par de minutos.
 //
-// La URL de tu API la escribe pnpm subir-pagina en config.js.
+// La URL de tu API se exporta desde config.js; no usamos configuración global.
 
-const API = (window.GASTOS_CONFIG && window.GASTOS_CONFIG.apiUrl) || ''
+import { API_URL } from './config.js'
+
+const API = API_URL
 
 const ETIQUETAS = {
   cafes: 'Cafés',
@@ -15,7 +17,6 @@ const ETIQUETAS = {
 
 const pesos = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 const fecha = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Mexico_City' })
-const dia = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Mexico_City' })
 
 // Crea un elemento con texto. Nunca usamos innerHTML con datos de la API:
 // la descripción la escribe quien tenga tu API key.
@@ -78,67 +79,8 @@ async function cargarGastos() {
   }
 }
 
-async function cargarPresupuestos() {
-  const seccion = document.getElementById('seccion-presupuestos')
-  const contenedor = document.getElementById('presupuestos')
-  try {
-    const { presupuestos } = await pedir('/presupuestos')
-    seccion.hidden = false
-    contenedor.replaceChildren()
-    if (presupuestos.length === 0) {
-      contenedor.append(el('p', 'Todavía no tienes presupuestos. Crea el primero con el formulario.', 'nota'))
-      return
-    }
-    const lista = el('ul', undefined, 'barras')
-    for (const p of presupuestos) {
-      const porcentaje = p.tope > 0 ? Math.round((p.gastado / p.tope) * 100) : 0
-      const item = el('li')
-      const encabezado = el('div', undefined, 'barra-encabezado')
-      encabezado.append(
-        el('span', `${ETIQUETAS[p.categoria] || p.categoria} · ${p.periodo === 'semana' ? 'a la semana' : 'al mes'}`),
-        el('span', `${pesos.format(p.gastado)} de ${pesos.format(p.tope)}`),
-      )
-      const barra = el('progress')
-      barra.max = 100
-      barra.value = Math.min(porcentaje, 100)
-      barra.setAttribute('aria-label', `${ETIQUETAS[p.categoria] || p.categoria}: ${porcentaje}% del tope`)
-      item.append(encabezado, barra, el('p', `${porcentaje}% · se reinicia el ${dia.format(new Date(p.reiniciaEl))}`, 'nota'))
-      lista.append(item)
-    }
-    contenedor.append(lista)
-  } catch {
-    seccion.hidden = true
-    contenedor.replaceChildren()
-  }
-}
-
-document.getElementById('form-presupuesto').addEventListener('submit', async (evento) => {
-  evento.preventDefault()
-  const form = evento.currentTarget
-  const estado = document.getElementById('estado-form')
-  const datos = new FormData(form)
-  const tope = Number(datos.get('tope'))
-  if (!Number.isFinite(tope) || tope <= 0) {
-    estado.textContent = 'El tope tiene que ser un número mayor a 0.'
-    return
-  }
-  estado.textContent = 'Guardando…'
-  try {
-    await pedir('/presupuestos/' + encodeURIComponent(datos.get('categoria')), {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tope, periodo: datos.get('periodo') }),
-    })
-    estado.textContent = 'Presupuesto guardado.'
-    await cargarPresupuestos()
-  } catch (err) {
-    estado.textContent = 'No se pudo guardar: ' + err.message + '. ¿Ya existe PUT /presupuestos/{categoria}?'
-  }
-})
-
 if (!API) {
-  document.getElementById('gran-total').textContent = 'Falta config.js. Corre pnpm subir-pagina.'
+  document.getElementById('gran-total').textContent = 'Falta config.js. Corre pnpm preparar-pagina.'
 } else {
   cargarGastos()
-  cargarPresupuestos()
 }

@@ -26,7 +26,7 @@ Ruta: `POST /gastos`, con API key en el header `x-api-key`.
 
 1. CUANDO llega un gasto válido, LA API DEBE guardarlo y responder 201 con el gasto guardado: `id`, `fecha` (ISO en UTC), `origen`, `monto`, `descripcion` y `categoria`.
 2. LA API DEBE aceptar `monto` como número o como texto (`"45.5"`), porque así lo manda el Atajo, y guardarlo redondeado a 2 decimales.
-3. SI `monto` no es un número, es menor o igual a 0 o es mayor a 100 000, ENTONCES LA API DEBE responder 400 con `{ "error": "..." }` y no guardar nada.
+3. SI `monto` no es un número, es menor o igual a 0 o es mayor a 100 000, ENTONCES LA API DEBE responder 400 con `{ "error": "..." }` y no guardar nada. La cláusula de menor o igual a 0 la agrega el asistente a mano en `src/shared/validacion.ts` (módulo 4); lo demás ya viene en el starter.
 4. SI `descripcion` no tiene entre 1 y 120 caracteres, ENTONCES LA API DEBE responder 400.
 5. SI `categoria` no es una de las cinco categorías, ENTONCES LA API DEBE responder 400. Se acepta con acentos y mayúsculas (`Cafés`) y se guarda normalizada.
 6. LA API DEBE guardar el header opcional `x-origen` como `atajo`, `curl`, `pagina` o `verify`, y cualquier otro valor como `otro`.
@@ -51,49 +51,14 @@ Ruta: `GET /gastos`, abierto (sin API key).
 
 #### Criterios de aceptación
 
-1. LA PÁGINA DEBE servirse por HTTPS desde una URL de CloudFront.
-2. Los archivos de `web/` DEBEN vivir en un bucket que no se pueda leer directo: pedir un archivo a S3 sin pasar por CloudFront responde 403.
-3. LA PÁGINA DEBE responder con el header `X-Robots-Tag: noindex`.
+1. LA PÁGINA DEBE servirse por HTTPS desde la URL de la rama `main` en Amplify Hosting después de hacer push al repositorio de GitHub del asistente.
+2. El repo DEBE tener `amplify.yml` que publique `web/`.
+3. `web/config.js` DEBE apuntar a `ApiUrl` antes del push que publica la página.
 
-### Requisito 4: Presupuestos por categoría (paso extra A)
+### Requisito 4: Login con Cognito (paso extra)
 
-**Historia:** Como persona que gasta de más en cafés, quiero ponerme un tope por semana, para saber cuándo parar.
-
-Rutas: `PUT /presupuestos/{categoria}` y `GET /presupuestos`, abiertas.
-
-```json
-{ "tope": 80, "periodo": "semana" }
-```
-
-#### Criterios de aceptación
-
-1. CUANDO llega un presupuesto válido, LA API DEBE guardarlo, reemplazar el anterior de esa categoría si existía y responder 200 con `{ "categoria", "tope", "periodo", "actualizado" }`.
-2. SI `{categoria}` no es una de las cinco categorías, `tope` no es mayor a 0 y menor o igual a 100 000, o `periodo` no es `semana` ni `mes`, ENTONCES LA API DEBE responder 400 con `{ "error": "..." }`.
-3. CUANDO alguien pide los presupuestos, LA API DEBE responder 200 con esta forma:
-
-```json
-{
-  "presupuestos": [
-    {
-      "categoria": "cafes",
-      "tope": 80,
-      "periodo": "semana",
-      "gastado": 64,
-      "porcentaje": 80,
-      "inicio": "2026-11-02T06:00:00.000Z",
-      "reiniciaEl": "2026-11-09T06:00:00.000Z"
-    }
-  ]
-}
-```
-
-4. `gastado` DEBE ser la suma de los gastos de esa categoría desde `inicio` hasta ahora, y `porcentaje` DEBE ser `gastado / tope * 100` redondeado a entero.
-5. Un presupuesto DEBE "reiniciarse" porque `gastado` se calcula por rango de fechas, nunca borrando gastos. El historial completo se conserva.
-6. Las semanas DEBEN empezar el lunes a las 00:00 y los meses el día 1 a las 00:00, en `America/Mexico_City`. Un café del domingo a las 8 pm cuenta en la semana que termina ese domingo, aunque en UTC ya sea lunes. Lo revisa `tests/periodo.test.ts`.
-
-### Requisito 5: Login con Cognito (paso extra B)
-
-1. `GET /gastos`, `GET /presupuestos` y `PUT /presupuestos/{categoria}` DEBEN pedir un token de Cognito en el header `Authorization`. Sin token responden 401.
+1. `GET /gastos` DEBE pedir un token de Cognito en el header `Authorization`. Sin token responde 401.
 2. `POST /gastos` DEBE seguir con API key, para que el Atajo no se rompa.
 3. No DEBE haber registro abierto: los usuarios se crean con `pnpm crear-usuario`.
-4. La callback URL del app client DEBE salir del output `PaginaUrl` del stack.
+4. La callback URL del app client DEBE recibir la URL HTTPS de la página de Amplify mediante el parámetro `FrontendUrl` del stack.
+5. LA PÁGINA DEBE iniciar sesión con el login administrado de Cognito y mandar el `IdToken` en el header `Authorization` al pedir la lista; los datos de la API se pintan sin `innerHTML`.

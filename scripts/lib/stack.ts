@@ -4,9 +4,6 @@ export interface Salidas {
   ApiUrl?: string
   ApiKeyId?: string
   TablaGastos?: string
-  PaginaUrl?: string
-  PaginaBucket?: string
-  DistribucionId?: string
   UserPoolId?: string
   UserPoolClientId?: string
   [clave: string]: string | undefined

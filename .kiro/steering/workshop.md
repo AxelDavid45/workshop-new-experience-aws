@@ -14,13 +14,13 @@ Este repo es el starter de un workshop. Quien te pide algo aquí está aprendien
 
 ## Lo que nunca haces
 
-- No corras comandos de deploy ni de sync: nada de `sam deploy`, `sam sync`, `sam delete`, `pnpm build`, `pnpm sync`, `pnpm limpiar`, `pnpm rotar-key` ni `pnpm subir-pagina`. El asistente despliega cuando revisó tu diff.
+- No corras comandos de deploy ni de sync: nada de `sam deploy`, `sam sync`, `sam delete`, `pnpm build`, `pnpm sync`, `pnpm limpiar`, `pnpm rotar-key` ni `pnpm preparar-pagina`. El asistente despliega cuando revisó tu diff.
 - No cambies el logical ID `GastosTable`, su `TableName`, su `KeySchema` ni su `DeletionPolicy`.
 - No cambies el contrato de la API (rutas, status codes, nombres de campos) ni la lista de categorías.
 - No agregues dependencias nuevas a `package.json`.
 - No uses `Resource: '*'` ni policies administradas tipo `DynamoDBCrudPolicy`. Cada Lambda lleva solo las acciones que usa, sobre `GastosTable`.
 - No crees recursos fuera de `template.yaml` ni en otra Región que no sea la del proyecto.
-- No arregles tests en rojo que no son parte de tu tarea. Algunos están en rojo a propósito y los arregla el asistente a mano (`rechaza montos negativos` y `tests/periodo.test.ts`).
+- No arregles tests en rojo que no son parte de tu tarea. Algunos están en rojo a propósito y los arregla el asistente a mano (`rechaza montos negativos`).
 
 ## Cuando termines
 

@@ -17,7 +17,6 @@ Globals:
     Environment:
       Variables:
         TABLE_NAME: !Ref GastosTable
-        ZONA_HORARIA: America/Mexico_City
     Tags:
       workshop: gastos-hormiga
 
@@ -52,7 +51,7 @@ Resources:
       Cors:
         AllowOrigin: "'*'"
         AllowHeaders: "'Content-Type,x-api-key,x-origen'"
-        AllowMethods: "'GET,POST,PUT,OPTIONS'"
+        AllowMethods: "'GET,POST,OPTIONS'"
       # Throttling del stage: aplica a todos, con o sin key. Va por debajo de las
       # 10 ejecuciones concurrentes de Lambda que trae una cuenta nueva, para que
       # API Gateway responda 429 antes de que Lambda se sature y responda 500.

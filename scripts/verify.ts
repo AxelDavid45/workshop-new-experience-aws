@@ -5,7 +5,7 @@
 // (.kiro/specs/gastos-hormiga/requirements.md). Si sale
 // verde, terminaste, aunque tu Kiro haya escrito distinto que el del vecino.
 //
-// Los gastos y presupuestos de prueba que crea se borran al terminar.
+// Los gastos de prueba que crea se borran al terminar.
 
 import { execFile } from 'node:child_process'
 import path from 'node:path'
@@ -39,6 +39,7 @@ function esperar(condicion: boolean, mensaje: string, pista?: string): asserts c
 // ---------- Contexto compartido entre pruebas ----------
 
 let salidasCache: Salidas | null = null
+let paginaUrl: string | null = null
 async function salidas(): Promise<Salidas> {
   if (salidasCache) return salidasCache
   try {
@@ -184,27 +185,8 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           const { Account } = await aws<{ Account: string }>(['sts', 'get-caller-identity'])
           const r = await aws<{ Budgets?: { BudgetName: string }[] }>(['budgets', 'describe-budgets', '--account-id', Account], { region: 'us-east-1' })
           const nombres = (r.Budgets ?? []).map((b) => b.BudgetName)
-          esperar(nombres.length > 0, 'No encontré ningún budget', 'Crea el Zero spend budget desde la actividad del módulo 2')
-          return nombres.join(', ')
-        },
-      },
-      {
-        nombre: 'Actividad de Budgets completada',
-        suave: true,
-        correr: async () => {
-          const r = await aws<{ activities: { title: string; status: string; reward?: { credit?: { amount: number } } }[] }>(
-            ['freetier', 'list-account-activities'],
-            { region: 'us-east-1' },
-          )
-          const buscadas = [/budget/i]
-          const lineas = r.activities.map((a) => `${a.status === 'COMPLETED' ? verde('✔') : gris('·')} ${a.title} ${gris(`(${a.status})`)}`)
-          console.log(lineas.map((l) => `    ${l}`).join('\n'))
-          const faltan = r.activities.filter((a) => buscadas.some((re) => re.test(a.title)) && a.status !== 'COMPLETED')
-          esperar(
-            faltan.length === 0,
-            faltan.length === 1 ? `Te falta 1 actividad del módulo 2: ${faltan[0].title}` : `Te faltan ${faltan.length} actividades del módulo 2`,
-            'A veces tarda en actualizarse. Si ya las hiciste, vuelve a correrlo en unos minutos',
-          )
+          esperar(nombres.includes('gastos-hormiga-10-usd'), 'No encontré el budget gastos-hormiga-10-usd', 'Crea el budget mensual de USD 10 desde el módulo 2')
+          return 'gastos-hormiga-10-usd'
         },
       },
     ],
@@ -290,108 +272,25 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
     pruebas: [
       ...pruebasDeSesion,
       {
-        nombre: 'El stack tiene los outputs de la página',
+        nombre: 'Tu página responde por Amplify Hosting',
         correr: async () => {
-          const s = await salidas()
-          const faltan = ['PaginaUrl', 'PaginaBucket', 'DistribucionId'].filter((k) => !s[k])
-          esperar(faltan.length === 0, `Faltan los outputs ${faltan.join(', ')}`, 'La tarea 2 de la spec dice cómo se llaman. ¿Ya reanudaste pnpm sync?')
-          return s.PaginaUrl
-        },
-      },
-      {
-        nombre: 'Tu página responde por CloudFront',
-        correr: async () => {
-          const s = await salidas()
-          const res = await pedir(s.PaginaUrl!)
-          esperar(res.status === 200, `Respondió ${res.status}`, 'CloudFront tarda unos minutos la primera vez. ¿Ya corriste pnpm subir-pagina?')
-          esperar(res.texto.includes('Gastos hormiga'), 'La página no parece ser la de web/', 'Corre pnpm subir-pagina')
-        },
-      },
-      {
-        nombre: 'La página lleva el header X-Robots-Tag: noindex',
-        correr: async () => {
-          const res = await pedir((await salidas()).PaginaUrl!)
-          const valor = res.headers.get('x-robots-tag') ?? ''
-          esperar(/noindex/i.test(valor), 'No veo el header X-Robots-Tag', 'Va en la response headers policy de la distribución')
+          const res = await pedir(paginaUrl!)
+          esperar(res.status === 200, `Respondió ${res.status}`, 'Revisa en Amplify que el build de main haya terminado en verde.')
+          esperar(res.texto.includes('Gastos hormiga'), 'La página no parece ser la de web/', 'Confirma que amplify.yml publique la carpeta web/.')
         },
       },
       {
         nombre: 'La página sabe cuál es tu API',
         correr: async () => {
           const s = await salidas()
-          const res = await pedir(new URL('config.js', s.PaginaUrl!.endsWith('/') ? s.PaginaUrl! : s.PaginaUrl + '/').toString())
-          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre pnpm subir-pagina')
-        },
-      },
-      {
-        nombre: 'El bucket es privado (S3 directo responde 403)',
-        correr: async () => {
-          const s = await salidas()
-          const bloqueo = await aws<{ PublicAccessBlockConfiguration: Record<string, boolean> }>([
-            's3api',
-            'get-public-access-block',
-            '--bucket',
-            s.PaginaBucket!,
-          ]).catch(() => null)
-          const todo = bloqueo && Object.values(bloqueo.PublicAccessBlockConfiguration).every(Boolean)
-          esperar(!!todo, 'El bucket no tiene activado Block Public Access completo', 'Revisa PublicAccessBlockConfiguration en template.yaml')
-          const directo = await pedir(`https://${s.PaginaBucket}.s3.${CONFIG.region}.amazonaws.com/index.html`)
-          esperar(directo.status === 403, `S3 directo respondió ${directo.status}`, 'Solo CloudFront debería poder leer el bucket')
-        },
-      },
-    ],
-  },
-  presupuestos: {
-    titulo: 'Paso extra A: presupuestos por categoría',
-    pruebas: [
-      {
-        nombre: 'Los tests de zona horaria pasan',
-        correr: () => correrTest('tests/periodo.test.ts'),
-      },
-      ...pruebasDeSesion,
-      {
-        nombre: 'GET /presupuestos responde 200 con una lista',
-        correr: async () => {
-          const res = await pedir(`${await apiUrl()}/presupuestos`)
-          esperar(res.status === 200, `Respondió ${res.status}`, 'Revisa que el evento del GET esté en template.yaml y que pnpm sync esté corriendo')
-          esperar(Array.isArray(res.json?.presupuestos), 'La respuesta no trae la lista "presupuestos"', 'El formato está en el requisito 4 de la spec')
-        },
-      },
-      {
-        nombre: 'PUT /presupuestos con una categoría que no existe responde 400',
-        correr: async () => {
-          const res = await pedir(`${await apiUrl()}/presupuestos/dulces`, { method: 'PUT', body: { tope: 50, periodo: 'semana' } })
-          esperar(res.status === 400, `Respondió ${res.status}`)
-        },
-      },
-      {
-        nombre: 'PUT /presupuestos/otros guarda y el GET regresa tope, gastado y reinicio',
-        correr: async () => {
-          const url = await apiUrl()
-          const antes = await pedir(`${url}/presupuestos`)
-          const previo = (antes.json?.presupuestos ?? []).find((p: { categoria: string }) => p.categoria === 'otros')
-          try {
-            const put = await pedir(`${url}/presupuestos/otros`, { method: 'PUT', body: { tope: 123, periodo: 'mes' } })
-            esperar(put.status === 200, `El PUT respondió ${put.status}: ${put.texto.slice(0, 120)}`)
-            const res = await pedir(`${url}/presupuestos`)
-            const p = (res.json?.presupuestos ?? []).find((x: { categoria: string }) => x.categoria === 'otros')
-            esperar(!!p, 'El GET no regresa el presupuesto de "otros"')
-            esperar(p.tope === 123 && p.periodo === 'mes', `El GET regresa tope ${p.tope} y periodo ${p.periodo}`)
-            esperar(typeof p.gastado === 'number', 'Falta "gastado" (número)')
-            esperar(!Number.isNaN(Date.parse(p.reiniciaEl)), 'Falta "reiniciaEl" (fecha ISO)')
-          } finally {
-            if (previo) {
-              await pedir(`${url}/presupuestos/otros`, { method: 'PUT', body: { tope: previo.tope, periodo: previo.periodo } })
-            } else {
-              porBorrar.push({ pk: 'PRESUPUESTOS', sk: 'CATEGORIA#otros' })
-            }
-          }
+          const res = await pedir(new URL('config.js', paginaUrl!).toString())
+          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre pnpm preparar-pagina, haz commit y push a main.')
         },
       },
     ],
   },
   cognito: {
-    titulo: 'Paso extra A: login con Cognito',
+    titulo: 'Paso extra: login con Cognito',
     pruebas: [
       ...pruebasDeSesion,
       {
@@ -448,6 +347,25 @@ async function main() {
     console.log(gris('Los módulos 1 y 2 se revisan con pnpm verify 3.'))
     process.exitCode = 1
     return
+  }
+
+  if (modulo === '6') {
+    const url = posicionales[1]
+    if (!url) {
+      console.log('Uso: pnpm verify 6 https://main.<app-id>.amplifyapp.com')
+      console.log(gris('Copia la URL de tu rama main desde Amplify Hosting.'))
+      process.exitCode = 1
+      return
+    }
+    try {
+      const pagina = new URL(url)
+      if (pagina.protocol !== 'https:') throw new Error('La URL debe usar HTTPS')
+      paginaUrl = pagina.toString()
+    } catch (err) {
+      console.log(`La URL de tu página no es válida: ${(err as Error).message}`)
+      process.exitCode = 1
+      return
+    }
   }
 
   const { titulo: nombre, pruebas } = MODULOS[modulo]

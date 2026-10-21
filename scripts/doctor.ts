@@ -54,13 +54,13 @@ async function main() {
       accountPlanExpirationDate?: string
     }>(['freetier', 'get-account-plan-state'], { region: 'us-east-1' })
     if (plan.accountPlanType === 'PAID') {
-      ok('Estás en el Paid plan. Revisa tu spend limit en AWS Settings > Billing')
+      ok('Estás en el plan de pago. Revisa tu límite de gasto en AWS Settings > Billing')
     } else {
       const expira = plan.accountPlanExpirationDate ? new Date(plan.accountPlanExpirationDate) : null
       const dias = expira ? Math.ceil((expira.getTime() - Date.now()) / 86_400_000) : null
       const creditos = plan.accountPlanRemainingCredits
-      const texto = `Free plan: ${dias ?? '?'} días restantes, ${creditos ? `${creditos.amount} ${creditos.unit}` : '?'} de créditos`
-      if (dias !== null && dias < 30) aviso(texto, 'Si quieres conservar tu app, pasa al Paid plan antes de que termine y ponle un spend limit')
+      const texto = `Capa Gratuita: ${dias ?? '?'} días restantes, ${creditos ? `${creditos.amount} ${creditos.unit}` : '?'} de créditos`
+      if (dias !== null && dias < 30) aviso(texto, 'Si quieres conservar tu app, pasa al plan de pago antes de que termine y ponle un límite de gasto')
       else ok(texto)
     }
   } catch {
