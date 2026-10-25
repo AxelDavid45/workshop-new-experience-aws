@@ -2,7 +2,7 @@
   "name": "workshop-new-experience-aws",
   "version": "1.0.0",
   "private": true,
-  "description": "Workshop: construye tu app de gastos hormiga con Kiro y la nueva experiencia de AWS (SAM, API Gateway, Lambda y DynamoDB)",
+  "description": "Workshop: app de gastos hormiga en AWS Free Tier (SAM, API Gateway, Lambda y DynamoDB)",
   "type": "module",
   "scripts": {
     "build": "sam build",

@@ -59,7 +59,7 @@ async function main() {
       const expira = plan.accountPlanExpirationDate ? new Date(plan.accountPlanExpirationDate) : null
       const dias = expira ? Math.ceil((expira.getTime() - Date.now()) / 86_400_000) : null
       const creditos = plan.accountPlanRemainingCredits
-      const texto = `Capa Gratuita: ${dias ?? '?'} días restantes, ${creditos ? `${creditos.amount} ${creditos.unit}` : '?'} de créditos`
+      const texto = `AWS Free Tier: ${dias ?? '?'} días restantes, ${creditos ? `${creditos.amount} ${creditos.unit}` : '?'} de créditos`
       if (dias !== null && dias < 30) aviso(texto, 'Si quieres conservar tu app, pasa al plan de pago antes de que termine y ponle un límite de gasto')
       else ok(texto)
     }

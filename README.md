@@ -1,8 +1,8 @@
-# ¿En qué se te va el dinero? Construye una app de gastos hormiga con IA y AWS
+# App de gastos hormiga en el AWS Free Tier
 
 **Versión del material: v5**
 
-Repo del workshop donde construyes una app para registrar tus gastos hormiga desde la pantalla de bloqueo de tu teléfono, con AWS SAM y Kiro.
+Aquí construyes una app para registrar tus gastos hormiga desde la pantalla de bloqueo de tu teléfono, con AWS SAM y Kiro.
 
 **Las instrucciones viven en el sitio del workshop:** (TODO: add link del sitio publicado)
 
