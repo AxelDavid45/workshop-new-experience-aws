@@ -1,6 +1,20 @@
-# Plan de implementación
+# Implementation Plan
+
+## Overview
 
 Cada tarea es un módulo del workshop. Quien la ejecuta está aprendiendo y va a leer el diff antes de aceptarlo, así que haz cambios chicos y fáciles de revisar. No corras comandos de deploy en ninguna tarea.
+
+## Task Dependency Graph
+
+Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login al backend de la tarea 1 y usa la URL de la página que queda lista con la tarea 2.
+
+```text
+1 ─┐
+   ├──> 3
+2 ─┘
+```
+
+## Tasks
 
 - [ ] 1. Escribir las Lambdas de gastos (módulo 4)
   - Escribe el cuerpo de `src/handlers/registrar.ts` y `src/handlers/listar.ts` siguiendo la sección **Gastos (tarea 1)** de `design.md`. Hoy los dos responden 501.

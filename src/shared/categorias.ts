@@ -1,5 +1,4 @@
-// Las categorías son fijas en todo el workshop (ver .kiro/specs/gastos-hormiga/design.md).
-// El Atajo, la página y la API usan exactamente estos identificadores.
+// Identificadores de categoría compartidos por el Atajo, la página y la API.
 
 export const CATEGORIAS = ['cafes', 'snacks', 'transporte', 'suscripciones', 'otros'] as const
 
@@ -14,8 +13,7 @@ export const ETIQUETAS: Record<Categoria, string> = {
   otros: 'Otros',
 }
 
-// El Atajo manda lo que eligiste en el menú ("Cafés", "cafes", " CAFÉS ").
-// Quitamos acentos, espacios y mayúsculas antes de comparar.
+// Acepta acentos, espacios y mayúsculas del menú del Atajo.
 export function normalizarCategoria(valor: unknown): Categoria | null {
   if (typeof valor !== 'string') return null
   const limpio = valor

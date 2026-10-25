@@ -1,9 +1,5 @@
-// pnpm rotar-key
-// Crea una API key nueva y borra la anterior. Lo hacemos cambiando el parámetro
-// VersionKey del template: como el nombre de la key depende de ese parámetro,
-// CloudFormation crea una key nueva, la conecta al usage plan y borra la vieja.
-//
-// Antes de correrlo, pausa pnpm sync (Ctrl+C) para que no choquen dos deploys.
+// pnpm rotar-key incrementa VersionKey y CloudFormation reemplaza la API key.
+// Pausa pnpm sync primero para no iniciar dos deploys al mismo tiempo.
 
 import { spawn } from 'node:child_process'
 import { CONFIG, ROOT } from './lib/aws.ts'

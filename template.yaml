@@ -47,17 +47,16 @@ Resources:
     Properties:
       StageName: v1
       Auth:
-        ApiKeyRequired: false # por default abierto; el POST lo pide aparte
+        ApiKeyRequired: false # GET queda abierto; POST la exige en su evento.
       Cors:
         AllowOrigin: "'*'"
         AllowHeaders: "'Content-Type,x-api-key,x-origen'"
         AllowMethods: "'GET,POST,OPTIONS'"
-      # Throttling del stage: aplica a todos, con o sin key. Va por debajo de las
-      # 10 ejecuciones concurrentes de Lambda que trae una cuenta nueva, para que
-      # API Gateway responda 429 antes de que Lambda se sature y responda 500.
       MethodSettings:
         - ResourcePath: '/*'
           HttpMethod: '*'
+          # La API acepta hasta 5 peticiones por segundo durante la práctica.
+          # Si mandas más, responde 429: espera un momento e inténtalo de nuevo.
           ThrottlingRateLimit: 5
           ThrottlingBurstLimit: 5
       Tags:
@@ -71,7 +70,7 @@ Resources:
       Name: !Sub ${AWS::StackName}-key-${VersionKey}
       Enabled: true
 
-  # El usage plan limita a quien trae la key: pocas peticiones por segundo y una cuota diaria.
+  # El Atajo usa este plan: 2 peticiones por segundo y 500 al día.
   GastosUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
     DependsOn: GastosApiv1Stage

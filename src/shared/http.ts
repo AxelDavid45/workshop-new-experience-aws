@@ -1,8 +1,6 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
-// CORS abierto a cualquier origen: los GET ya son públicos, y la página vive en
-// un dominio de Amplify que no existe hasta el módulo 6. Con Cognito (paso
-// extra) esto cambia al dominio exacto de tu página.
+// CORS queda abierto hasta que Cognito permita limitarlo al dominio de Amplify.
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Access-Control-Allow-Origin': '*',

@@ -7,10 +7,7 @@ export const TABLE_NAME = process.env.TABLE_NAME ?? 'gastos-hormiga-gastos'
 // Se crea una vez por contenedor de Lambda y se reusa entre invocaciones.
 export const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
-// KeySchema de GastosTable (ver la spec en .kiro/specs/gastos-hormiga/design.md).
-// No se modifica.
-//   pk = "GASTOS"                      sk = "GASTO#<fecha ISO>#<id>"
-// Como la sk empieza con la fecha, un Query devuelve los gastos ya ordenados.
+// La key usa pk GASTOS y una sk que empieza con fecha; Query ya regresa ordenado.
 export const PK_GASTOS = 'GASTOS'
 
 export function skGasto(fecha: string, id: string): string {

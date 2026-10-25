@@ -1,12 +1,12 @@
-# Requisitos: gastos hormiga
+# Requirements Document
 
-## Introducción
+## Introduction
 
 Una app para registrar gastos hormiga desde la pantalla de bloqueo del teléfono y verlos en una página. Este documento es el contrato de la API: `pnpm verify N` lo revisa contra la API desplegada, así que si algo de aquí cambia, el verify deja de pasar.
 
 Categorías válidas en todo el documento: `cafes`, `snacks`, `transporte`, `suscripciones`, `otros`.
 
-## Requisitos
+## Requirements
 
 ### Requisito 1: Registrar un gasto
 

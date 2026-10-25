@@ -1,7 +1,4 @@
-// Página de gastos hormiga. JavaScript sin build ni dependencias, para que lo
-// leas completo en un par de minutos.
-//
-// La URL de tu API se exporta desde config.js; no usamos configuración global.
+// Página sin build: config.js exporta la URL de la API.
 
 import { API_URL } from './config.js'
 
@@ -18,8 +15,7 @@ const ETIQUETAS = {
 const pesos = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' })
 const fecha = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Mexico_City' })
 
-// Crea un elemento con texto. Nunca usamos innerHTML con datos de la API:
-// la descripción la escribe quien tenga tu API key.
+// textContent trata los datos de la API como texto, nunca como HTML.
 function el(tag, texto, clase) {
   const nodo = document.createElement(tag)
   if (texto !== undefined) nodo.textContent = texto

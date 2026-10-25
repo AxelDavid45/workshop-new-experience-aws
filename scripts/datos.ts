@@ -1,7 +1,4 @@
-// pnpm datos
-// Imprime lo que necesitas para configurar el Atajo: la URL de tu API y el valor
-// de tu API key. En el módulo 4 la copias desde la consola a propósito, esto es
-// el atajo para cuando ya sabes dónde está.
+// pnpm datos imprime la URL y la API key después del recorrido manual por consola.
 
 import { argumentos, gris, titulo } from './lib/consola.ts'
 import { salidasDelStack, valorDeLaKey } from './lib/stack.ts'

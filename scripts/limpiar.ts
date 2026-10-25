@@ -1,9 +1,5 @@
-// pnpm limpiar              borra el backend: API, Lambdas y tabla con tus gastos.
-// El hosting vive en Amplify: al final eliminas esa app desde la consola de AWS.
-// pnpm limpiar --solo-extras deja tu app y revisa lo que sobró de las actividades del módulo 2
-//
-// SAM borra los recursos declarados en template.yaml; Amplify Hosting se limpia
-// por separado porque se conecta a tu repositorio de GitHub.
+// pnpm limpiar borra la API, Lambdas y tabla del backend.
+// La app de Amplify se elimina aparte; --solo-extras pide confirmación antes de borrar recursos opcionales.
 
 import { spawn } from 'node:child_process'
 import { CONFIG, ROOT, aws } from './lib/aws.ts'

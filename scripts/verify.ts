@@ -1,10 +1,4 @@
-// pnpm verify N
-//
-// Revisa el contrato de tu app por comportamiento, no por código: le pega a TU
-// API desplegada y confirma que responda lo que pide la spec
-// (.kiro/specs/gastos-hormiga/requirements.md). Si sale
-// verde, terminaste, aunque tu Kiro haya escrito distinto que el del vecino.
-//
+// pnpm verify N revisa la API desplegada contra requirements.md.
 // Los gastos de prueba que crea se borran al terminar.
 
 import { execFile } from 'node:child_process'

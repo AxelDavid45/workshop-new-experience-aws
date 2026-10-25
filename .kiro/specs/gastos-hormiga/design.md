@@ -1,8 +1,12 @@
-# Diseño: gastos hormiga
+# Design Document
+
+## Overview
 
 Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se negocia, aunque haya otra forma que parezca mejor: los checkpoints del workshop (`pnpm verify N`) y las ramas de solución dependen de estos nombres.
 
-## Infraestructura
+## Architecture
+
+### Infraestructura
 
 - La infraestructura del backend final vive en `template.yaml`, con AWS SAM. Amplify Hosting publica `web/` desde GitHub y se configura con archivos del repo, no con recursos de este template. La Lambda y la tabla de la práctica manual son efímeras: usan nombres fijos y se borran con `pnpm limpiar-practica` antes del primer deploy.
 - Stack `gastos-hormiga` en la Región del proyecto. Los dos salen de `samconfig.toml`.
@@ -11,7 +15,9 @@ Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se
 - Cada Lambda tiene `FunctionName: ${AWS::StackName}-<nombre>` y su `AWS::Logs::LogGroup` con el mismo nombre y `RetentionInDays: 14`, para que `pnpm limpiar` también borre los logs.
 - Las Lambdas se empaquetan con esbuild desde `src/` (`Metadata.BuildMethod: esbuild`), en formato ESM, con `@aws-sdk/*` como external porque ya viene en el runtime.
 
-## La tabla de DynamoDB
+## Data Models
+
+### La tabla de DynamoDB
 
 `GastosTable` no se toca. Estas reglas existen porque un cambio aquí puede borrar tus gastos:
 
@@ -37,7 +43,9 @@ Como la `sk` de los gastos empieza con la fecha, un `Query` con `pk = GASTOS` re
 
 No se agregan índices secundarios (GSI ni LSI).
 
-## API
+## Components and Interfaces
+
+### API
 
 - Es una REST API (`AWS::Serverless::Api`), no HTTP API: los usage plans y las API keys solo existen en REST.
 - Un solo stage: `v1`.
@@ -55,7 +63,7 @@ Cada Lambda tiene solo los permisos de su fila, escritos como `Statement` explí
 
 Categorías fijas: `cafes`, `snacks`, `transporte`, `suscripciones`, `otros` (`src/shared/categorias.ts`).
 
-## Outputs
+### Outputs
 
 El stack publica estos tres outputs y `pnpm verify N` depende de sus nombres. Si cambian, el checkpoint truena.
 
@@ -65,7 +73,7 @@ El stack publica estos tres outputs y `pnpm verify N` depende de sus nombres. Si
 | `ApiKeyId`    | ID de la API key, no el valor   | `pnpm datos`, `pnpm verify`             |
 | `TablaGastos` | Nombre de `GastosTable`         | `pnpm verify`, para borrar lo de prueba |
 
-## Gastos (tarea 1)
+### Gastos (tarea 1)
 
 `src/handlers/registrar.ts` y `src/handlers/listar.ts` ya existen como versión vacía que responde 501. La tarea es escribir su cuerpo; el template, los permisos y los helpers ya están listos.
 
@@ -80,14 +88,14 @@ El stack publica estos tres outputs y `pnpm verify N` depende de sus nombres. Si
   - responde `json(200, { gastos })` con solo `id`, `fecha`, `monto`, `descripcion`, `categoria` y `origen` de cada item.
 - La validación de montos ≤ 0 en `validacion.ts` no es parte de la tarea: la agrega el asistente a mano después.
 
-## Estilo de los handlers
+### Estilo de los handlers
 
 - Un archivo por handler en `src/handlers/`, que exporta `handler`.
 - Lo compartido vive en `src/shared/`: `db.ts` (cliente y llaves), `http.ts` (`json`, `error`, `leerBody`, `header`), `categorias.ts` y `validacion.ts`.
 - La validación regresa `{ ok: true, valor }` o `{ ok: false, error }`, y el handler responde 400 con `{ "error": "..." }`.
 - Cada handler nuevo lleva su test en `tests/`, con `db.send` reemplazado por un mock (ver `tests/gastos.test.ts`).
 
-## Página (tarea 2)
+### Página (tarea 2)
 
 Los archivos de la página ya existen en `web/` y no cambian. El asistente hace fork del starter en GitHub y conecta la rama `main` con Amplify Hosting desde la consola. Kiro solo prepara la configuración que vive en el repo:
 
@@ -97,7 +105,7 @@ No se agregan recursos de hosting, outputs ni permisos a `template.yaml`. No se 
 
 Después de aceptar el diff, el asistente corre `pnpm preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. Luego hace commit y push a `main`; Amplify detecta el push, despliega la página y entrega una URL HTTPS. `pnpm verify 6 <url-de-amplify>` revisa la página y `config.js`.
 
-## Paso extra: login con Cognito (tarea 3)
+### Paso extra: login con Cognito (tarea 3)
 
 - `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto con `USER_PASSWORD_AUTH` en sus `ExplicitAuthFlows` (lo usan `pnpm crear-usuario` y `pnpm verify cognito`) y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. El template recibe `FrontendUrl` como parámetro para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
 - **La página con Cognito:** se actualiza `web/app.js` para iniciar sesión con el login administrado de Cognito (hosted UI) y mandar el `IdToken` en el header `Authorization` al pedir `GET /gastos`. Como en la ruta base, los datos de la API se pintan con `textContent`, nunca con `innerHTML`.
