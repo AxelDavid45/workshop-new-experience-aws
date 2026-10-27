@@ -8,6 +8,23 @@ Cada tarea es un módulo del workshop. Quien la ejecuta está aprendiendo y va a
 
 Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login al backend de la tarea 1 y usa la URL de la página que queda lista con la tarea 2.
 
+```json
+{
+  "waves": [
+    {
+      "wave": 1,
+      "tasks": [1, 2],
+      "dependsOn": []
+    },
+    {
+      "wave": 2,
+      "tasks": [3],
+      "dependsOn": [1, 2]
+    }
+  ]
+}
+```
+
 ```text
 1 ─┐
    ├──> 3
