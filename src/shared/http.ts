@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
-// CORS queda abierto hasta que Cognito permita limitarlo al dominio de Amplify.
+// CORS queda abierto para los forks del workshop y datos ficticios; no autentica la API.
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Access-Control-Allow-Origin': '*',

@@ -1,72 +1,17 @@
-// pnpm limpiar borra la API, Lambdas y tabla del backend.
-// La app de Amplify se elimina aparte; --solo-extras pide confirmación antes de borrar recursos opcionales.
+// pnpm limpiar borra solo el stack conocido del workshop: API, Lambdas y tabla.
+// La app de Amplify se elimina aparte desde la consola.
 
 import { spawn } from 'node:child_process'
-import { CONFIG, ROOT, aws } from './lib/aws.ts'
-import { argumentos, aviso, gris, ok, preguntar, rojo, titulo } from './lib/consola.ts'
+import { CONFIG, ROOT } from './lib/aws.ts'
+import { argumentos, ok, preguntar, rojo, titulo } from './lib/consola.ts'
 
-async function confirmar(pregunta: string): Promise<boolean> {
-  return /^s(i|í)?$/i.test(await preguntar(`${pregunta} [s/N] `))
-}
-
-async function soloExtras() {
-  titulo('Lo que sobró del módulo 2')
-  let encontrados = 0
-
-  const ec2 = await aws<{ Reservations: { Instances: { InstanceId: string; State: { Name: string } }[] }[] }>([
-    'ec2',
-    'describe-instances',
-    '--filters',
-    'Name=instance-state-name,Values=pending,running,stopping,stopped',
-  ])
-  for (const i of ec2.Reservations.flatMap((r) => r.Instances)) {
-    encontrados++
-    console.log(`Instancia de EC2 ${i.InstanceId} (${i.State.Name})`)
-    if (await confirmar('  ¿La termino?')) {
-      await aws(['ec2', 'terminate-instances', '--instance-ids', i.InstanceId])
-      ok('  Terminada')
-    }
-  }
-
-  const rds = await aws<{ DBInstances: { DBInstanceIdentifier: string; DBInstanceStatus: string; DBClusterIdentifier?: string }[] }>([
-    'rds',
-    'describe-db-instances',
-  ])
-  for (const db of rds.DBInstances) {
-    encontrados++
-    console.log(`Base de datos de RDS ${db.DBInstanceIdentifier} (${db.DBInstanceStatus})`)
-    if (db.DBClusterIdentifier) {
-      aviso('  Es parte de un cluster de Aurora', 'Bórrala desde la consola de RDS: primero la instancia y luego el cluster')
-      continue
-    }
-    if (await confirmar('  ¿La borro? (sin snapshot final, no se puede deshacer)')) {
-      await aws(['rds', 'delete-db-instance', '--db-instance-identifier', db.DBInstanceIdentifier, '--skip-final-snapshot', '--delete-automated-backups'])
-      ok('  Borrándose (tarda unos minutos)')
-    }
-  }
-
-  const lambdas = await aws<{ Functions: { FunctionName: string }[] }>(['lambda', 'list-functions'])
-  for (const f of lambdas.Functions.filter((f) => !f.FunctionName.startsWith(`${CONFIG.stack}-`))) {
-    encontrados++
-    console.log(`Lambda ${f.FunctionName} (no es de tu app)`)
-    if (await confirmar('  ¿La borro?')) {
-      await aws(['lambda', 'delete-function', '--function-name', f.FunctionName])
-      ok('  Borrada')
-    }
-  }
-
-  if (encontrados === 0) ok('No quedó nada prendido de las actividades. Tu app sigue intacta.')
-}
-
-async function todo(sinPreguntar: boolean) {
+async function todo() {
   titulo(`Borrar ${CONFIG.stack} completo`)
   console.log(rojo('Esto borra tu API, tus Lambdas y la tabla con TODOS tus gastos. No se puede deshacer. La app de Amplify se borra después desde la consola.'))
-  if (!sinPreguntar) {
-    const respuesta = await preguntar(`Escribe ${CONFIG.stack} para confirmar: `)
-    if (respuesta !== CONFIG.stack) {
-      console.log('No borré nada.')
-      return
-    }
+  const respuesta = await preguntar(`Escribe ${CONFIG.stack} para confirmar: `)
+  if (respuesta !== CONFIG.stack) {
+    console.log('No borré nada.')
+    return
   }
 
   const codigo = await new Promise<number>((resolve) => {
@@ -77,14 +22,18 @@ async function todo(sinPreguntar: boolean) {
     })
     sam.on('close', (c) => resolve(c ?? 1))
   })
-  if (codigo === 0) ok('Backend borrado. Ahora elimina la app de Amplify desde la consola de AWS y corre pnpm limpiar --solo-extras para revisar lo demás.')
+  if (codigo === 0) ok('Backend borrado. Ahora elimina la app de Amplify desde la consola de AWS.')
   process.exitCode = codigo
 }
 
 async function main() {
-  const { banderas } = argumentos()
-  if (banderas.has('solo-extras')) await soloExtras()
-  else await todo(banderas.has('si'))
+  const { banderas, posicionales } = argumentos()
+  if (banderas.size > 0 || posicionales.length > 0) {
+    console.error('pnpm limpiar no acepta argumentos. Solo borra el stack conocido del workshop.')
+    process.exitCode = 1
+    return
+  }
+  await todo()
 }
 
 main().catch((err) => {

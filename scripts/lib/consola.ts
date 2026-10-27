@@ -24,7 +24,7 @@ export function titulo(texto: string) {
   console.log(`\n${negritas(texto)}`)
 }
 
-// Lee los argumentos tipo `--solo-extras` y regresa los posicionales aparte.
+// Lee flags con -- y argumentos posicionales por separado.
 export function argumentos(argv = process.argv.slice(2)) {
   const banderas = new Set(argv.filter((a) => a.startsWith('--')).map((a) => a.slice(2)))
   const posicionales = argv.filter((a) => !a.startsWith('--'))

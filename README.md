@@ -8,6 +8,8 @@ Aquí construyes una app para registrar tus gastos hormiga desde la pantalla de 
 
 Si vas a tomar el taller, empieza por la sección "Antes del evento" del sitio. Haz fork de este repo y después clonalo en tu cuenta.
 
+> **Alcance de seguridad:** esto es un workshop temporal y solo sirve para pruebas, no para producción. `GET /gastos` es público y la API key limita uso, no autentica personas. Usa datos ficticios y elimina el backend y Amplify al terminar.
+
 ## Qué hay aquí
 
 | Carpeta o archivo             | Qué hay                                                                                |
@@ -35,7 +37,7 @@ pnpm verify 0
 | `main`               | El punto de partida del módulo 0                                                     |
 | `modulo-4`           | Módulo 4 terminado: las Lambdas de gastos escritas y los montos negativos rechazados |
 | `modulo-6`           | Módulo 6 terminado: configuración de Amplify Hosting para la página                  |
-| `extra-cognito`      | Paso extra terminado: login con Cognito y callback de Amplify                         |
+| `extra-cognito`      | Paso extra experimental: login con Cognito y callback de Amplify; no es una solución de producción |
 
 `GastosTable` tiene el mismo logical ID y nombre en todas las ramas, así que cambiar de rama y volver a desplegar actualiza tu stack sin borrar tus gastos.
 

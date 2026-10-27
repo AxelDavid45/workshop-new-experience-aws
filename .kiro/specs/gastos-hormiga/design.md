@@ -49,7 +49,7 @@ No se agregan índices secundarios (GSI ni LSI).
 
 - Es una REST API (`AWS::Serverless::Api`), no HTTP API: los usage plans y las API keys solo existen en REST.
 - Un solo stage: `v1`.
-- CORS: `AllowOrigin '*'`, headers `Content-Type,x-api-key,x-origen`, métodos `GET,POST,OPTIONS`. Las respuestas de las Lambdas incluyen `Access-Control-Allow-Origin: *` (lo hace `src/shared/http.ts`).
+- CORS: `AllowOrigin '*'`, headers `Content-Type,x-api-key,x-origen`, métodos `GET,POST,OPTIONS`. Las respuestas de las Lambdas incluyen `Access-Control-Allow-Origin: *` (lo hace `src/shared/http.ts`). CORS no autentica la API: esta configuración solo sirve para los forks del workshop con datos ficticios y debe revisarse antes de producción.
 - Throttling del stage: 5 peticiones por segundo, ráfaga de 5, para todos los métodos.
 - `GastosApiKey` con nombre `${AWS::StackName}-key-${VersionKey}`. Rotar la key es cambiar el parámetro `VersionKey` (`pnpm rotar-key`).
 - `GastosUsagePlan`: 2 peticiones por segundo, ráfaga de 4, cuota de 500 al día. Solo limita a quien trae la API key.
@@ -107,5 +107,6 @@ Después de la tarea, el asistente corre `pnpm preparar-pagina`. Ese comando esc
 
 ### Paso extra: login con Cognito (tarea 3)
 
-- `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto con `USER_PASSWORD_AUTH` en sus `ExplicitAuthFlows` (lo usan `pnpm crear-usuario` y `pnpm verify cognito`) y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. El template recibe `FrontendUrl` como parámetro para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
+- `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto con `USER_PASSWORD_AUTH` en sus `ExplicitAuthFlows` (lo usan `pnpm crear-usuario` y `pnpm verify cognito`), `PreventUserExistenceErrors: ENABLED` y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. El template recibe `FrontendUrl` como parámetro para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
+- **Límite del ejercicio:** la tabla usa una sola partición `GASTOS`, así que Cognito demuestra autenticación de `GET` para una persona, no aislamiento de datos entre usuarios. Un producto multiusuario debe particionar por el claim `sub` y autorizar también las escrituras.
 - **La página con Cognito:** se actualiza `web/app.js` para iniciar sesión con el login administrado de Cognito (hosted UI) y mandar el `IdToken` en el header `Authorization` al pedir `GET /gastos`. Como en la ruta base, los datos de la API se pintan con `textContent`, nunca con `innerHTML`.

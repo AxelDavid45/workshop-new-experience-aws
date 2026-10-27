@@ -106,12 +106,10 @@ async function main() {
   console.log(`Log group: ${LOG_GROUP_PRACTICA}`)
   console.log(gris(`También borra los execution roles que encuentre con el prefijo ${PREFIJO_ROL}`))
 
-  if (!banderas.has('si')) {
-    const respuesta = await preguntar('Escribe limpiar-practica para confirmar: ')
-    if (respuesta !== 'limpiar-practica') {
-      console.log('No borré nada.')
-      return
-    }
+  const respuesta = await preguntar('Escribe limpiar-practica para confirmar: ')
+  if (respuesta !== 'limpiar-practica') {
+    console.log('No borré nada.')
+    return
   }
 
   const borrados = await limpiarPractica()

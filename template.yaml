@@ -47,7 +47,8 @@ Resources:
     Properties:
       StageName: v1
       Auth:
-        ApiKeyRequired: false # GET queda abierto; POST la exige en su evento.
+        # GET queda público solo en este workshop con datos ficticios.
+        ApiKeyRequired: false
       Cors:
         AllowOrigin: "'*'"
         AllowHeaders: "'Content-Type,x-api-key,x-origen'"
