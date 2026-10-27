@@ -4,7 +4,7 @@
 
 Aquí construyes una app para registrar tus gastos hormiga desde la pantalla de bloqueo de tu teléfono, con AWS SAM y Kiro.
 
-**Las instrucciones viven en el sitio del workshop:** (TODO: add link del sitio publicado)
+**Las instrucciones viven en el [sitio del workshop](https://main.d2kzpx97pko28.amplifyapp.com/).**
 
 Si vas a tomar el taller, empieza por la sección "Antes del evento" del sitio. Haz fork de este repo y después clonalo en tu cuenta.
 
