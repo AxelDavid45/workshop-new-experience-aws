@@ -1,6 +1,6 @@
 // pnpm preparar-pagina
-// Escribe web/config.js con la URL de tu API. Después tú haces commit y push;
-// Amplify Hosting detecta el cambio y publica la página.
+// Escribe web/config.js con la URL de tu API. Después lo agregas de forma
+// explícita, haces commit y push; Amplify Hosting publica la página.
 
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -22,7 +22,7 @@ async function main() {
   ok('web/config.js apunta a tu API')
 
   console.log('\nAhora guarda y sube este cambio a tu fork:')
-  console.log(gris('  git add web/config.js amplify.yml'))
+  console.log(gris('  git add -f web/config.js'))
   console.log(gris('  git commit -m "Publica mi página de gastos"'))
   console.log(gris('  git push origin main'))
   console.log(gris('\nAmplify Hosting detecta el push y publica la página.'))

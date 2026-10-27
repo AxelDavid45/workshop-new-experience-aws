@@ -103,7 +103,7 @@ Los archivos de la página ya existen en `web/` y no cambian. El asistente hace 
 
 No se agregan recursos de hosting, outputs ni permisos a `template.yaml`. No se modifica `web/` durante la tarea.
 
-Después de aceptar el diff, el asistente corre `pnpm preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. Luego hace commit y push a `main`; Amplify detecta el push, despliega la página y entrega una URL HTTPS. `pnpm verify 6 <url-de-amplify>` revisa la página y `config.js`.
+Después de la tarea, el asistente corre `pnpm preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push, despliega la página y entrega una URL HTTPS. `pnpm verify 6 <url-de-amplify>` revisa la página y `config.js`.
 
 ### Paso extra: login con Cognito (tarea 3)
 

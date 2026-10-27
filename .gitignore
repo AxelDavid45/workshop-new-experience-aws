@@ -2,5 +2,6 @@ node_modules/
 .aws-sam/
 .env
 .DS_Store
-# La genera pnpm subir-pagina con la URL de tu API; no se versiona.
+# La genera pnpm preparar-pagina. Solo se publica con git add -f
+# después de revisar que contiene la URL pública de tu API.
 web/config.js
