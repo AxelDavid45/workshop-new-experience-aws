@@ -33,7 +33,7 @@ Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login a
 
 ## Tasks
 
-- [ ] 1. Preparar la página para Amplify Hosting (módulo 2)
+- [x] 1. Preparar la página para Amplify Hosting (módulo 2)
   - Crea `amplify.yml` siguiendo la sección **Página (tarea 1)** de `design.md`.
   - Solo crea ese archivo. No cambies `infra/gastos-stack.ts`, `GastosTable`, la API, las Lambdas ni `web/`.
   - No conectes GitHub ni ejecutes deploys: eso lo hace el asistente desde la consola de Amplify después de revisar el diff.
