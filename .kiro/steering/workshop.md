@@ -22,6 +22,12 @@ Este repo es el starter de un workshop. Quien te pide algo aquí está aprendien
 - No crees recursos fuera de `infra/gastos-stack.ts` ni en otra Región que no sea la del proyecto.
 - No arregles tests en rojo que no son parte de tu tarea. Algunos están en rojo a propósito y los arregla el asistente a mano (`rechaza montos negativos`).
 
+## Comandos que funcionan en Windows
+
+- El asistente puede estar en Windows (PowerShell), macOS o Linux. Prefiere `npm run <script>` y los scripts de `scripts/`, que corren igual en los tres.
+- Si tienes que dar un comando de terminal, da la versión de PowerShell y la de bash. Evita `rm`, `export`, `$(...)`, `&&` encadenados y `curl` con JSON entre comillas, porque cambian entre sistemas. Para probar la API usa `npm run probar`.
+- Si un comando falla y no sabes por qué, muestra el error completo y el comando que lo produjo. No cambies de herramienta ni instales nada para esquivarlo.
+
 ## Cuando termines
 
 - Corre `npm test` y `npm run typecheck` y di qué pasó, incluidos los tests que siguen en rojo a propósito.
