@@ -1,4 +1,4 @@
-// pnpm crear-usuario
+// npm run crear-usuario
 // Paso extra de Cognito. No hay registro abierto: tu usuario lo creas tú con
 // tus credenciales de AWS. Cognito te manda una contraseña temporal al correo.
 

@@ -95,7 +95,7 @@ export async function limpiarPractica(ejecutar: EjecutarAws = aws): Promise<stri
 async function main() {
   const { banderas } = argumentos()
   if (banderas.has('ayuda')) {
-    console.log('Uso: pnpm limpiar-practica')
+    console.log('Uso: npm run limpiar-practica')
     return
   }
 

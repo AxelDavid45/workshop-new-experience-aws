@@ -1,7 +1,7 @@
 node_modules/
-.aws-sam/
+cdk.out/
 .env
 .DS_Store
-# La genera pnpm preparar-pagina. Solo se publica con git add -f
+# La genera npm run preparar-pagina. Solo se publica con git add -f
 # después de revisar que contiene la URL pública de tu API.
 web/config.js

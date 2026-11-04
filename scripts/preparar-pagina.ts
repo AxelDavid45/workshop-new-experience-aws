@@ -1,4 +1,4 @@
-// pnpm preparar-pagina
+// npm run preparar-pagina
 // Escribe web/config.js con la URL de tu API. Después lo agregas de forma
 // explícita, haces commit y push; Amplify Hosting publica la página.
 
@@ -17,7 +17,7 @@ async function main() {
     return
   }
 
-  const config = `// Lo genera pnpm preparar-pagina. No lo edites a mano.\nexport const API_URL = ${JSON.stringify(s.ApiUrl)}\n`
+  const config = `// Lo genera npm run preparar-pagina. No lo edites a mano.\nexport const API_URL = ${JSON.stringify(s.ApiUrl)}\n`
   writeFileSync(path.join(ROOT, 'web', 'config.js'), config)
   ok('web/config.js apunta a tu API')
 

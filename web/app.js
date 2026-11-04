@@ -1,8 +1,13 @@
 // Página sin build: config.js exporta la URL de la API.
+// config.js no está en git hasta que corres npm run preparar-pagina, así que la
+// primera versión que publica Amplify no lo tiene. Por eso se importa con try/catch.
 
-import { API_URL } from './config.js'
-
-const API = API_URL
+let API = ''
+try {
+  ;({ API_URL: API } = await import('./config.js'))
+} catch {
+  // Todavía no existe config.js: la página avisa que falta conectarla.
+}
 
 const ETIQUETAS = {
   cafes: 'Cafés',
@@ -76,7 +81,12 @@ async function cargarGastos() {
 }
 
 if (!API) {
-  document.getElementById('gran-total').textContent = 'Falta config.js. Corre pnpm preparar-pagina.'
+  document.getElementById('gran-total').textContent = 'Tu página ya está publicada, pero todavía no apunta a una API.'
+  const fila = el('tr')
+  const celda = el('td', 'Despliega tu API (módulo 4) y corre npm run preparar-pagina para ver aquí tus gastos.')
+  celda.colSpan = 4
+  fila.append(celda)
+  document.getElementById('lista').replaceChildren(fila)
 } else {
   cargarGastos()
 }
