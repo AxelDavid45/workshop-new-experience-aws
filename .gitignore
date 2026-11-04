@@ -1,5 +1,5 @@
 node_modules/
-.aws-sam/
+cdk.out/
 .env
 .DS_Store
 # La genera npm run preparar-pagina. Solo se publica con git add -f

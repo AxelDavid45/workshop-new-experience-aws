@@ -1,7 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 
-// El nombre de la tabla llega como variable de entorno desde template.yaml.
+// El nombre de la tabla llega como variable de entorno desde infra/gastos-stack.ts.
 export const TABLE_NAME = process.env.TABLE_NAME ?? 'gastos-hormiga-gastos'
 
 // Se crea una vez por contenedor de Lambda y se reusa entre invocaciones.

@@ -8,12 +8,14 @@ Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se
 
 ### Infraestructura
 
-- La infraestructura del backend final vive en `template.yaml`, con AWS SAM. Amplify Hosting publica `web/` desde GitHub y se configura con archivos del repo, no con recursos de este template. La Lambda y la tabla de la práctica manual son efímeras: usan nombres fijos y se borran con `npm run limpiar-practica` antes del primer deploy.
-- Stack `gastos-hormiga` en la Región del proyecto. Los dos salen de `samconfig.toml`.
-- Todo recurso que acepte tags lleva `workshop=gastos-hormiga`.
-- Runtime fijado en `Globals.Function.Runtime: nodejs24.x`, arquitectura `arm64`.
-- Cada Lambda tiene `FunctionName: ${AWS::StackName}-<nombre>` y su `AWS::Logs::LogGroup` con el mismo nombre y `RetentionInDays: 14`, para que `npm run limpiar` también borre los logs.
-- Las Lambdas se empaquetan con esbuild desde `src/` (`Metadata.BuildMethod: esbuild`), en formato ESM, con `@aws-sdk/*` como external porque ya viene en el runtime.
+- La infraestructura del backend final vive en `infra/gastos-stack.ts`, con AWS CDK en TypeScript. `infra/app.ts` crea el stack y `cdk.json` dice cómo ejecutarlo. Amplify Hosting publica `web/` desde GitHub y se configura con archivos del repo, no con recursos de este stack. La Lambda y la tabla de la práctica manual son efímeras: usan nombres fijos y se borran con `npm run limpiar-practica` antes del primer deploy.
+- CDK necesita un bootstrap una vez por cuenta y Región (`npm run bootstrap`): crea el bucket donde se suben los paquetes de las Lambdas. Ese stack (`CDKToolkit`) no es parte de `gastos-hormiga` y `npm run limpiar` no lo borra.
+- Stack `gastos-hormiga` en la Región del proyecto. Salen de `cdk.json`: `context.stackName`, `context.region` y `profile`.
+- Todo recurso que acepte tags lleva `workshop=gastos-hormiga` (`Tags.of(this).add(...)` en el stack).
+- Runtime fijado en `Runtime.NODEJS_24_X`, arquitectura `Architecture.ARM_64`.
+- Cada Lambda tiene `functionName: ${stackName}-<nombre>` y su `LogGroup` con el mismo nombre, `RetentionDays.TWO_WEEKS` y `removalPolicy: DESTROY`, para que `npm run limpiar` también borre los logs.
+- Las Lambdas son `NodejsFunction`: CDK las empaqueta con el esbuild del repo desde `src/handlers/`, en formato ESM, con `@aws-sdk/*` como external porque ya viene en el runtime.
+- `tests/infra.test.ts` revisa estas reglas sobre la plantilla que CDK genera, sin credenciales de AWS.
 
 ## Data Models
 
@@ -21,10 +23,10 @@ Cómo se construye lo que pide `requirements.md`. Lo que dice este archivo no se
 
 `GastosTable` no se toca. Estas reglas existen porque un cambio aquí puede borrar tus gastos:
 
-- El logical ID es `GastosTable` en todas las ramas. Si cambia, CloudFormation borra la tabla vieja con tus gastos y crea una vacía.
-- `TableName` es fijo: `!Sub ${AWS::StackName}-gastos`. Con nombre propio, CloudFormation no puede hacer un update que reemplace la tabla: el deploy falla y hace rollback en vez de perder los datos en silencio.
-- `DeletionPolicy` normal (no `Retain`), para que `npm run limpiar` borre todo.
-- `BillingMode: PAY_PER_REQUEST`.
+- El logical ID es `GastosTable` en todas las ramas. CDK arma los logical IDs con un hash del id y la ruta del constructo, así que el stack los fija con `overrideLogicalId('GastosTable')`. Si cambia, CloudFormation borra la tabla vieja con tus gastos y crea una vacía.
+- `tableName` es fijo: `${stackName}-gastos`. Con nombre propio, CloudFormation no puede hacer un update que reemplace la tabla: el deploy falla y hace rollback en vez de perder los datos en silencio.
+- `removalPolicy: RemovalPolicy.DESTROY` (CDK usa `RETAIN` por default en las tablas), para que `npm run limpiar` borre todo.
+- `billingMode: BillingMode.PAY_PER_REQUEST`.
 
 ### KeySchema
 
@@ -47,11 +49,11 @@ No se agregan índices secundarios (GSI ni LSI).
 
 ### API
 
-- Es una REST API (`AWS::Serverless::Api`), no HTTP API: los usage plans y las API keys solo existen en REST.
+- Es una REST API (`RestApi` de `aws-cdk-lib/aws-apigateway`), no HTTP API: los usage plans y las API keys solo existen en REST. Sin rol de CloudWatch a nivel cuenta (`cloudWatchRole: false`).
 - Un solo stage: `v1`.
-- CORS: `AllowOrigin '*'`, headers `Content-Type,x-api-key,x-origen`, métodos `GET,POST,OPTIONS`. Las respuestas de las Lambdas incluyen `Access-Control-Allow-Origin: *` (lo hace `src/shared/http.ts`). CORS no autentica la API: esta configuración solo sirve para los forks del workshop con datos ficticios y debe revisarse antes de producción.
+- CORS (`defaultCorsPreflightOptions`): `allowOrigins ['*']`, headers `Content-Type,x-api-key,x-origen`, métodos `GET,POST,OPTIONS`. Las respuestas de las Lambdas incluyen `Access-Control-Allow-Origin: *` (lo hace `src/shared/http.ts`). CORS no autentica la API: esta configuración solo sirve para los forks del workshop con datos ficticios y debe revisarse antes de producción.
 - Throttling del stage: 5 peticiones por segundo, ráfaga de 5, para todos los métodos.
-- `GastosApiKey` con nombre `${AWS::StackName}-key-${VersionKey}`. Rotar la key es cambiar el parámetro `VersionKey` (`npm run rotar-key`).
+- `GastosApiKey` con nombre `${stackName}-key-${VersionKey}`. Rotar la key es cambiar el parámetro `VersionKey` (un `CfnParameter` del stack) con `npm run rotar-key`.
 - `GastosUsagePlan`: 2 peticiones por segundo, ráfaga de 4, cuota de 500 al día. Solo limita a quien trae la API key.
 
 | Método y ruta  | Auth    | Lambda                   | Permisos de la Lambda                  |
@@ -59,7 +61,7 @@ No se agregan índices secundarios (GSI ni LSI).
 | `POST /gastos` | API key | `RegistrarGastoFunction` | `dynamodb:PutItem` sobre `GastosTable` |
 | `GET /gastos`  | Abierto | `ListarGastosFunction`   | `dynamodb:Query` sobre `GastosTable`   |
 
-Cada Lambda tiene solo los permisos de su fila, escritos como `Statement` explícito. Nada de `DynamoDBCrudPolicy` ni `Resource: '*'`.
+Cada Lambda tiene solo los permisos de su fila, escritos como `PolicyStatement` explícito con `addToRolePolicy`. Nada de `grantReadWriteData` ni `resources: ['*']`.
 
 Categorías fijas: `cafes`, `snacks`, `transporte`, `suscripciones`, `otros` (`src/shared/categorias.ts`).
 
@@ -75,7 +77,7 @@ El stack publica estos tres outputs y `npm run verify N` depende de sus nombres.
 
 ### Gastos (tarea 1)
 
-`src/handlers/registrar.ts` y `src/handlers/listar.ts` ya existen como versión vacía que responde 501. La tarea es escribir su cuerpo; el template, los permisos y los helpers ya están listos.
+`src/handlers/registrar.ts` y `src/handlers/listar.ts` ya existen como versión vacía que responde 501. La tarea es escribir su cuerpo; el stack, los permisos y los helpers ya están listos.
 
 - **Registrar (`POST /gastos`):**
   - lee el body con `leerBody(event)` y lo valida con `validarGasto()` de `src/shared/validacion.ts`;
@@ -101,12 +103,12 @@ Los archivos de la página ya existen en `web/` y no cambian. El asistente hace 
 
 - `amplify.yml` en la raíz, que define `web/` como `baseDirectory` de los artefactos estáticos. No instala dependencias ni compila nada: la página ya viene lista.
 
-No se agregan recursos de hosting, outputs ni permisos a `template.yaml`. No se modifica `web/` durante la tarea.
+No se agregan recursos de hosting, outputs ni permisos a `infra/gastos-stack.ts`. No se modifica `web/` durante la tarea.
 
 Después de la tarea, el asistente corre `npm run preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push, despliega la página y entrega una URL HTTPS. `npm run verify 6 <url-de-amplify>` revisa la página y `config.js`.
 
 ### Paso extra: login con Cognito (tarea 3)
 
-- `AWS::Cognito::UserPool` con `AdminCreateUserConfig.AllowAdminCreateUserOnly: true`, un app client sin secreto con `USER_PASSWORD_AUTH` en sus `ExplicitAuthFlows` (lo usan `npm run crear-usuario` y `npm run verify cognito`), `PreventUserExistenceErrors: ENABLED` y un `CognitoAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `ApiKeyRequired: true` y sin autorizador. El template recibe `FrontendUrl` como parámetro para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
+- Un `UserPool` con `selfSignUpEnabled: false` (solo el administrador crea usuarios), un app client sin secreto con `authFlows.userPassword` (lo usan `npm run crear-usuario` y `npm run verify cognito`), `preventUserExistenceErrors: true` y un `CognitoUserPoolsAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `apiKeyRequired: true` y sin autorizador. El stack recibe `FrontendUrl` como `CfnParameter` para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
 - **Límite del ejercicio:** la tabla usa una sola partición `GASTOS`, así que Cognito demuestra autenticación de `GET` para una persona, no aislamiento de datos entre usuarios. Un producto multiusuario debe particionar por el claim `sub` y autorizar también las escrituras.
 - **La página con Cognito:** se actualiza `web/app.js` para iniciar sesión con el login administrado de Cognito (hosted UI) y mandar el `IdToken` en el header `Authorization` al pedir `GET /gastos`. Como en la ruta base, los datos de la API se pintan con `textContent`, nunca con `innerHTML`.

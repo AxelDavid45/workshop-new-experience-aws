@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
@@ -7,27 +7,24 @@ const run = promisify(execFile)
 
 export const ROOT = path.resolve(import.meta.dirname, '../..')
 
-// Lee stack_name, region y profile de samconfig.toml, para que los scripts
-// y SAM siempre apunten al mismo lugar. Solo se lee [default.global.parameters].
-function leerSamconfig(): { stack: string; region: string; perfil: string } {
-  const texto = readFileSync(path.join(ROOT, 'samconfig.toml'), 'utf8')
-  const seccion = texto.split('[default.global.parameters]')[1]?.split(/\n\[/)[0] ?? ''
-  const valor = (clave: string, porDefecto: string) =>
-    seccion.match(new RegExp(`^${clave}\\s*=\\s*"([^"]+)"`, 'm'))?.[1] ?? porDefecto
+// Lee el nombre del stack, la Región y el perfil de cdk.json, para que los scripts
+// y CDK siempre apunten al mismo lugar: "profile", context.stackName y context.region.
+function leerCdkJson(): { stack: string; region: string; perfil: string } {
+  const cdk = JSON.parse(readFileSync(path.join(ROOT, 'cdk.json'), 'utf8'))
   return {
-    stack: valor('stack_name', 'gastos-hormiga'),
-    region: valor('region', 'us-east-2'),
-    perfil: valor('profile', 'gastos-hormiga'),
+    stack: cdk.context?.stackName ?? 'gastos-hormiga',
+    region: cdk.context?.region ?? 'us-east-2',
+    perfil: cdk.profile ?? 'gastos-hormiga',
   }
 }
 
-const samconfig = leerSamconfig()
+const cdkJson = leerCdkJson()
 
 export const CONFIG = {
-  stack: samconfig.stack,
-  region: samconfig.region,
-  // GASTOS_PERFIL sirve para probar con otro perfil sin editar samconfig.toml.
-  perfil: process.env.GASTOS_PERFIL || samconfig.perfil,
+  stack: cdkJson.stack,
+  region: cdkJson.region,
+  // GASTOS_PERFIL sirve para probar con otro perfil sin editar cdk.json.
+  perfil: process.env.GASTOS_PERFIL || cdkJson.perfil,
 }
 
 export class ErrorAws extends Error {
@@ -48,7 +45,7 @@ export async function aws<T = any>(args: string[], opciones: { region?: string }
     return (stdout.trim() ? JSON.parse(stdout) : {}) as T
   } catch (err) {
     const e = err as { stderr?: string; code?: string }
-    if (e.code === 'ENOENT') throw new ErrorAws(args.join(' '), 'No encontré el AWS CLI. Lo instala el Agent Toolkit en el módulo 3.')
+    if (e.code === 'ENOENT') throw new ErrorAws(args.join(' '), 'No encontré el AWS CLI. Instálalo como dice "Antes del evento" y abre una terminal nueva.')
     throw new ErrorAws(args.join(' '), e.stderr ?? String(err))
   }
 }
@@ -70,4 +67,18 @@ export function esSesionVencida(err: unknown): boolean {
 
 export function pistaDeSesion(): string {
   return `Corre: aws login --profile ${CONFIG.perfil}`
+}
+
+// Corre el CLI de CDK con el mismo node que estás usando y el perfil del proyecto.
+// No usamos node_modules/.bin/cdk porque en Windows es un .cmd y necesita un shell.
+export function correrCdk(args: string[]): Promise<number> {
+  const cdk = path.join(ROOT, 'node_modules', 'aws-cdk', 'bin', 'cdk')
+  return new Promise((resolve) => {
+    const proceso = spawn(process.execPath, [cdk, ...args, '--profile', CONFIG.perfil], { cwd: ROOT, stdio: 'inherit' })
+    proceso.on('error', (err) => {
+      console.error(err.message)
+      resolve(1)
+    })
+    proceso.on('close', (codigo) => resolve(codigo ?? 1))
+  })
 }

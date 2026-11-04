@@ -14,12 +14,12 @@ Este repo es el starter de un workshop. Quien te pide algo aquí está aprendien
 
 ## Lo que nunca haces
 
-- No corras comandos de deploy ni de sync: nada de `sam deploy`, `sam sync`, `sam delete`, `npm run build`, `npm run sync`, `npm run limpiar`, `npm run rotar-key` ni `npm run preparar-pagina`. El asistente despliega cuando revisó tu diff.
-- No cambies el logical ID `GastosTable`, su `TableName`, su `KeySchema` ni su `DeletionPolicy`.
+- No corras comandos de deploy ni de sync: nada de `cdk deploy`, `cdk watch`, `cdk destroy`, `cdk bootstrap`, `npm run bootstrap`, `npm run deploy`, `npm run sync`, `npm run limpiar`, `npm run rotar-key` ni `npm run preparar-pagina`. El asistente despliega cuando revisó tu diff.
+- No cambies el logical ID `GastosTable` (el `overrideLogicalId` de `infra/gastos-stack.ts`), su `tableName`, sus llaves ni su `removalPolicy`.
 - No cambies el contrato de la API (rutas, status codes, nombres de campos) ni la lista de categorías.
-- No agregues dependencias nuevas a `package.json`.
-- No uses `Resource: '*'` ni policies administradas tipo `DynamoDBCrudPolicy`. Cada Lambda lleva solo las acciones que usa, sobre `GastosTable`.
-- No crees recursos fuera de `template.yaml` ni en otra Región que no sea la del proyecto.
+- No agregues dependencias nuevas a `package.json`. Las reglas para instalar paquetes están en `.kiro/steering/npm-seguro.md`.
+- No uses `resources: ['*']` ni los helpers `grantReadWriteData` o `grantFullAccess`. Cada Lambda lleva un `PolicyStatement` con solo las acciones que usa, sobre `GastosTable`.
+- No crees recursos fuera de `infra/gastos-stack.ts` ni en otra Región que no sea la del proyecto.
 - No arregles tests en rojo que no son parte de tu tarea. Algunos están en rojo a propósito y los arregla el asistente a mano (`rechaza montos negativos`).
 
 ## Cuando termines

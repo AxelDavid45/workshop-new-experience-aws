@@ -43,7 +43,7 @@ async function salidas(): Promise<Salidas> {
   } catch (err) {
     if (esSesionVencida(err)) throw new Falla('Tu sesión de AWS venció o no existe', pistaDeSesion())
     if (/does not exist/.test(String(err))) {
-      throw new Falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Despliégalo con sam build y sam deploy (módulo 4)')
+      throw new Falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Despliégalo con npm run deploy (módulo 4)')
     }
     throw new Falla(String((err as Error).message ?? err))
   }
@@ -51,7 +51,7 @@ async function salidas(): Promise<Salidas> {
 
 async function apiUrl(): Promise<string> {
   const s = await salidas()
-  esperar(!!s.ApiUrl, 'El stack no tiene el output ApiUrl', 'Revisa la sección Outputs de template.yaml')
+  esperar(!!s.ApiUrl, 'El stack no tiene el output ApiUrl', 'Revisa los CfnOutput de infra/gastos-stack.ts')
   return s.ApiUrl
 }
 
@@ -138,14 +138,6 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
         },
       },
       {
-        nombre: 'AWS SAM CLI instalado',
-        correr: async () => {
-          const v = await versionDe('sam', ['--version'])
-          esperar(!!v, 'No encontré sam', 'Sigue la guía de instalación del prework')
-          return v
-        },
-      },
-      {
         nombre: 'AWS CLI (lo instala el Agent Toolkit en el módulo 3)',
         suave: true,
         correr: async () => {
@@ -168,7 +160,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           esperar(
             region === CONFIG.region,
             `Tu perfil dice "${region || 'sin Región'}"`,
-            `Confirma tu Región en AWS Settings > Overview > Additional Info. Si no es ${CONFIG.region}, cámbiala en samconfig.toml`,
+            `Confirma tu Región en AWS Settings > Overview > Additional Info. Si no es ${CONFIG.region}, cámbiala en cdk.json`,
           )
           return region
         },
@@ -198,7 +190,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
         nombre: 'POST /gastos sin API key responde 403',
         correr: async () => {
           const res = await pedir(`${await apiUrl()}/gastos`, { method: 'POST', body: gastoValido })
-          esperar(res.status === 403, `Respondió ${res.status}`, 'En template.yaml el evento del POST necesita Auth: ApiKeyRequired: true')
+          esperar(res.status === 403, `Respondió ${res.status}`, 'En infra/gastos-stack.ts el POST necesita apiKeyRequired: true')
         },
       },
       {
@@ -210,7 +202,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
             'Respondió 501: tu Lambda desplegada todavía es la versión vacía',
             'Haz la tarea 1 de la spec con Kiro y vuelve a desplegar (módulo 4)',
           )
-          esperar(res.status === 201, `Respondió ${res.status}: ${res.texto.slice(0, 120)}`, 'Revisa los logs con sam logs --stack-name gastos-hormiga --tail')
+          esperar(res.status === 201, `Respondió ${res.status}: ${res.texto.slice(0, 120)}`, 'Revisa los logs: aws logs tail /aws/lambda/gastos-hormiga-registrar --profile gastos-hormiga')
           esperar(!!res.json?.id, 'La respuesta no trae el id del gasto')
         },
       },

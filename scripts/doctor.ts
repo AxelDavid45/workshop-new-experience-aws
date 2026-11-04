@@ -13,10 +13,6 @@ async function main() {
   if (mayor >= 22) ok(`Node ${process.versions.node}`)
   else (problemas++, falla(`Node ${process.versions.node}`, 'Necesitas Node 22 o superior'))
 
-  const sam = await versionDe('sam', ['--version'])
-  if (sam) ok(sam)
-  else (problemas++, falla('No encontré sam', 'Instala AWS SAM CLI'))
-
   const cli = await versionDe('aws', ['--version'])
   if (cli) ok(cli.split(' ')[0])
   else (problemas++, falla('No encontré el AWS CLI', 'Vuelve a correr el prompt del Agent Toolkit'))
@@ -43,7 +39,7 @@ async function main() {
     else (problemas++, falla(`Faltan outputs: ${faltan.join(', ')}`))
   } catch (err) {
     problemas++
-    falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Si es la primera vez, despliégalo con npm run build y sam deploy (módulo 4)')
+    falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Si es la primera vez, despliégalo con npm run deploy (módulo 4)')
   }
 
   try {
