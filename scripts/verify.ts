@@ -88,10 +88,12 @@ async function postGasto(body: unknown, headers: Record<string, string> = {}) {
 }
 
 async function correrTest(archivo: string, filtro?: string) {
-  const bin = path.join(ROOT, 'node_modules', '.bin', process.platform === 'win32' ? 'vitest.cmd' : 'vitest')
-  const args = ['run', archivo, ...(filtro ? ['-t', filtro] : []), '--reporter=verbose']
+  // Se corre con el mismo node, sin shell: node_modules/.bin/vitest es un .cmd en Windows
+  // y una ruta con espacios (C:\Users\Juan Perez) lo rompe.
+  const vitest = path.join(ROOT, 'node_modules', 'vitest', 'vitest.mjs')
+  const args = [vitest, 'run', archivo, ...(filtro ? ['-t', filtro] : []), '--reporter=verbose']
   try {
-    await run(bin, args, { cwd: ROOT, shell: process.platform === 'win32', env: { ...process.env, NO_COLOR: '1' } })
+    await run(process.execPath, args, { cwd: ROOT, env: { ...process.env, NO_COLOR: '1' } })
   } catch (err) {
     const e = err as { stdout?: string }
     const enRojo = (e.stdout ?? "").match(/^\s*[×✗x] (.+?)(?:\s+\d+ms)?$/m)?.[1]?.split(" > ").at(-1)?.trim()

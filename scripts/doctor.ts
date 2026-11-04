@@ -1,7 +1,20 @@
 // npm run doctor
 // Revisión rápida antes de retomar el workshop o empezar un paso extra.
+// No usa shell ni binarios de macOS o Linux: corre igual en Windows.
 
-import { CONFIG, aws, esSesionVencida, pistaDeSesion, versionDe } from './lib/aws.ts'
+import {
+  AWS_CLI_MINIMO,
+  CONFIG,
+  NODE_MINIMO,
+  NPM_MINIMO,
+  aws,
+  esSesionVencida,
+  esVersionMinima,
+  pistaDeSesion,
+  versionDe,
+  versionDeAwsCli,
+  versionDeNpm,
+} from './lib/aws.ts'
 import { aviso, falla, gris, ok, titulo } from './lib/consola.ts'
 import { describirStack } from './lib/stack.ts'
 
@@ -10,12 +23,21 @@ async function main() {
   let problemas = 0
 
   const mayor = Number(process.versions.node.split('.')[0])
-  if (mayor >= 22) ok(`Node ${process.versions.node}`)
-  else (problemas++, falla(`Node ${process.versions.node}`, 'Necesitas Node 22 o superior'))
+  if (mayor >= NODE_MINIMO) ok(`Node ${process.versions.node}`)
+  else (problemas++, falla(`Node ${process.versions.node}`, `Necesitas Node ${NODE_MINIMO} o superior. Con nvm: nvm install --lts (Windows: nvm install lts)`))
 
-  const cli = await versionDe('aws', ['--version'])
-  if (cli) ok(cli.split(' ')[0])
-  else (problemas++, falla('No encontré el AWS CLI', 'Vuelve a correr el prompt del Agent Toolkit'))
+  const npm = await versionDeNpm()
+  if (npm && esVersionMinima(npm, NPM_MINIMO)) ok(`npm ${npm}`)
+  else (problemas++, falla(`npm ${npm ?? 'no encontrado'}`, `Necesitas npm ${NPM_MINIMO} o superior: npm install -g npm@latest`))
+
+  const git = await versionDe('git', ['--version'])
+  if (git) ok(git)
+  else (problemas++, falla('No encontré git', 'Instálalo desde https://git-scm.com y abre una terminal nueva'))
+
+  const cli = await versionDeAwsCli()
+  if (cli && esVersionMinima(cli, AWS_CLI_MINIMO)) ok(`AWS CLI ${cli}`)
+  else if (cli) (problemas++, falla(`AWS CLI ${cli}`, `Necesitas la ${AWS_CLI_MINIMO} o superior para aws login. Vuelve a instalarlo desde la guía`))
+  else (problemas++, falla('No encontré el AWS CLI', 'Instálalo como dice "Antes del evento" y abre una terminal nueva'))
 
   try {
     await aws(['sts', 'get-caller-identity'])
@@ -26,6 +48,13 @@ async function main() {
     console.log(gris('\nSin sesión no puedo revisar lo demás.'))
     process.exitCode = 1
     return
+  }
+
+  try {
+    await aws(['cloudformation', 'describe-stacks', '--stack-name', 'CDKToolkit'])
+    ok(`CDK listo en ${CONFIG.region} (bootstrap hecho)`)
+  } catch {
+    aviso(`Todavía no hiciste el bootstrap de CDK en ${CONFIG.region}`, 'Se hace una vez, en el módulo 4: npm run bootstrap')
   }
 
   try {
@@ -67,4 +96,7 @@ async function main() {
   if (problemas > 0) process.exitCode = 1
 }
 
-main()
+main().catch((err) => {
+  console.error((err as Error).message)
+  process.exitCode = 1
+})

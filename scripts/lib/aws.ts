@@ -1,4 +1,4 @@
-import { execFile, spawn } from 'node:child_process'
+import { exec, execFile, spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
@@ -81,4 +81,38 @@ export function correrCdk(args: string[]): Promise<number> {
     })
     proceso.on('close', (codigo) => resolve(codigo ?? 1))
   })
+}
+
+// ---------- Versiones mínimas ----------
+
+export const NODE_MINIMO = 22
+export const NPM_MINIMO = '11.10.0' // desde aquí existe min-release-age en .npmrc
+export const AWS_CLI_MINIMO = '2.32.0' // desde aquí existe aws login
+
+// Compara "2.36.42" contra "2.32.0": true si la primera es igual o más nueva.
+export function esVersionMinima(version: string, minima: string): boolean {
+  const a = version.split('.').map((n) => parseInt(n, 10) || 0)
+  const m = minima.split('.').map((n) => parseInt(n, 10) || 0)
+  for (let i = 0; i < 3; i++) {
+    if ((a[i] ?? 0) !== (m[i] ?? 0)) return (a[i] ?? 0) > (m[i] ?? 0)
+  }
+  return true
+}
+
+// npm avisa su versión a los scripts en npm_config_user_agent ("npm/12.2.1 node/v26.13.0 ...").
+// Si no corriste el script con npm, la pedimos con un shell: en Windows npm es npm.cmd.
+export async function versionDeNpm(): Promise<string | null> {
+  const delAgente = process.env.npm_config_user_agent?.match(/^npm\/(\d+\.\d+\.\d+)/)?.[1]
+  if (delAgente) return delAgente
+  try {
+    const { stdout } = await promisify(exec)('npm --version')
+    return stdout.trim().split('\n')[0] || null
+  } catch {
+    return null
+  }
+}
+
+export async function versionDeAwsCli(): Promise<string | null> {
+  const linea = await versionDe('aws', ['--version'])
+  return linea?.match(/aws-cli\/(\d+\.\d+\.\d+)/)?.[1] ?? null
 }

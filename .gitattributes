@@ -1,0 +1,2 @@
+# Mismo fin de línea en macOS, Linux y Windows: evita diffs falsos en package-lock.json y .npmrc.
+* text=auto eol=lf
