@@ -5,11 +5,11 @@
   "description": "Workshop: app de gastos hormiga en AWS Free Tier (CDK, API Gateway, Lambda y DynamoDB)",
   "type": "module",
   "scripts": {
-    "bootstrap": "cdk bootstrap",
+    "bootstrap": "cdk bootstrap --bootstrap-kms-key-id AWS_MANAGED_KEY",
     "synth": "cdk synth --quiet",
     "diff": "cdk diff",
     "deploy": "cdk deploy",
-    "sync": "cdk watch",
+    "sync": "cdk watch --hotswap-fallback",
     "verify": "tsx scripts/verify.ts",
     "doctor": "tsx scripts/doctor.ts",
     "datos": "tsx scripts/datos.ts",
