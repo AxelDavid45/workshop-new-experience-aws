@@ -21,13 +21,13 @@ Si vas a tomar el taller, empieza por la sección "Antes del evento" del sitio. 
 | `web/`                        | La página de tus gastos                                                                |
 | `.kiro/specs/gastos-hormiga/` | La spec: requisitos, diseño y las tareas que le pides a Kiro                           |
 | `.kiro/steering/workshop.md`  | Lo que Kiro no puede tocar en este repo                                                |
-| `scripts/`                    | `pnpm verify`, `pnpm limpiar-practica`, `pnpm preparar-pagina` y los demás             |
+| `scripts/`                    | `npm run verify`, `npm run limpiar-practica`, `npm run preparar-pagina` y los demás             |
 
 ## Arranque rápido
 
 ```bash
-pnpm install
-pnpm verify 0
+npm ci
+npm run verify 0
 ```
 
 ## Ramas

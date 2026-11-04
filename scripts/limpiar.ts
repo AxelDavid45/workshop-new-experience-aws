@@ -1,4 +1,4 @@
-// pnpm limpiar borra solo el stack conocido del workshop: API, Lambdas y tabla.
+// npm run limpiar borra solo el stack conocido del workshop: API, Lambdas y tabla.
 // La app de Amplify se elimina aparte desde la consola.
 
 import { spawn } from 'node:child_process'
@@ -29,7 +29,7 @@ async function todo() {
 async function main() {
   const { banderas, posicionales } = argumentos()
   if (banderas.size > 0 || posicionales.length > 0) {
-    console.error('pnpm limpiar no acepta argumentos. Solo borra el stack conocido del workshop.')
+    console.error('npm run limpiar no acepta argumentos. Solo borra el stack conocido del workshop.')
     process.exitCode = 1
     return
   }

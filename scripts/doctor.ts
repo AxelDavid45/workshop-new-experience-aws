@@ -1,4 +1,4 @@
-// pnpm doctor
+// npm run doctor
 // Revisión rápida antes de retomar el workshop o empezar un paso extra.
 
 import { CONFIG, aws, esSesionVencida, pistaDeSesion, versionDe } from './lib/aws.ts'
@@ -6,7 +6,7 @@ import { aviso, falla, gris, ok, titulo } from './lib/consola.ts'
 import { describirStack } from './lib/stack.ts'
 
 async function main() {
-  titulo('pnpm doctor')
+  titulo('npm run doctor')
   let problemas = 0
 
   const mayor = Number(process.versions.node.split('.')[0])
@@ -43,7 +43,7 @@ async function main() {
     else (problemas++, falla(`Faltan outputs: ${faltan.join(', ')}`))
   } catch (err) {
     problemas++
-    falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Si es la primera vez, despliégalo con pnpm build y sam deploy (módulo 4)')
+    falla(`No encontré el stack ${CONFIG.stack} en ${CONFIG.region}`, 'Si es la primera vez, despliégalo con npm run build y sam deploy (módulo 4)')
   }
 
   try {

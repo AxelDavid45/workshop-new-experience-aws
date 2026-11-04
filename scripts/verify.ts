@@ -1,4 +1,4 @@
-// pnpm verify N revisa la API desplegada contra requirements.md.
+// npm run verify N revisa la API desplegada contra requirements.md.
 // Los gastos de prueba que crea se borran al terminar.
 
 import { execFile } from 'node:child_process'
@@ -95,13 +95,13 @@ async function correrTest(archivo: string, filtro?: string) {
   } catch (err) {
     const e = err as { stdout?: string }
     const enRojo = (e.stdout ?? "").match(/^\s*[×✗x] (.+?)(?:\s+\d+ms)?$/m)?.[1]?.split(" > ").at(-1)?.trim()
-    throw new Falla(`Sigue en rojo${enRojo ? `: "${enRojo}"` : ''}`, `Corre pnpm test ${archivo} para ver el detalle`)
+    throw new Falla(`Sigue en rojo${enRojo ? `: "${enRojo}"` : ''}`, `Corre npm test ${archivo} para ver el detalle`)
   }
 }
 
 // ---------- Pruebas por módulo ----------
 
-const gastoValido = { monto: 1, descripcion: 'prueba de pnpm verify', categoria: 'otros' }
+const gastoValido = { monto: 1, descripcion: 'prueba de npm run verify', categoria: 'otros' }
 
 const pruebasDeSesion: Prueba[] = [
   {
@@ -239,7 +239,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           esperar(
             res.status === 400,
             `Respondió ${res.status}, tu API todavía acepta montos negativos`,
-            'El test local ya pasa pero falta subirlo. ¿Está corriendo pnpm sync?',
+            'El test local ya pasa pero falta subirlo. ¿Está corriendo npm run sync?',
           )
         },
       },
@@ -278,7 +278,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
         correr: async () => {
           const s = await salidas()
           const res = await pedir(new URL('config.js', paginaUrl!).toString())
-          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre pnpm preparar-pagina, haz commit y push a main.')
+          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre npm run preparar-pagina, haz commit y push a main.')
         },
       },
     ],
@@ -337,8 +337,8 @@ async function main() {
   const modulo = posicionales[0]
 
   if (!modulo || !MODULOS[modulo]) {
-    console.log(`Uso: pnpm verify <${Object.keys(MODULOS).join('|')}>`)
-    console.log(gris('Los módulos 1 y 2 se revisan con pnpm verify 3.'))
+    console.log(`Uso: npm run verify <${Object.keys(MODULOS).join('|')}>`)
+    console.log(gris('Los módulos 1 y 2 se revisan con npm run verify 3.'))
     process.exitCode = 1
     return
   }
@@ -346,7 +346,7 @@ async function main() {
   if (modulo === '6') {
     const url = posicionales[1]
     if (!url) {
-      console.log('Uso: pnpm verify 6 https://main.<app-id>.amplifyapp.com')
+      console.log('Uso: npm run verify 6 https://main.<app-id>.amplifyapp.com')
       console.log(gris('Copia la URL de tu rama main desde Amplify Hosting.'))
       process.exitCode = 1
       return

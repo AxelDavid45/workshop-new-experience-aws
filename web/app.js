@@ -76,7 +76,7 @@ async function cargarGastos() {
 }
 
 if (!API) {
-  document.getElementById('gran-total').textContent = 'Falta config.js. Corre pnpm preparar-pagina.'
+  document.getElementById('gran-total').textContent = 'Falta config.js. Corre npm run preparar-pagina.'
 } else {
   cargarGastos()
 }

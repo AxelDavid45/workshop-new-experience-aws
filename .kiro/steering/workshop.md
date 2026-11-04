@@ -14,7 +14,7 @@ Este repo es el starter de un workshop. Quien te pide algo aquí está aprendien
 
 ## Lo que nunca haces
 
-- No corras comandos de deploy ni de sync: nada de `sam deploy`, `sam sync`, `sam delete`, `pnpm build`, `pnpm sync`, `pnpm limpiar`, `pnpm rotar-key` ni `pnpm preparar-pagina`. El asistente despliega cuando revisó tu diff.
+- No corras comandos de deploy ni de sync: nada de `sam deploy`, `sam sync`, `sam delete`, `npm run build`, `npm run sync`, `npm run limpiar`, `npm run rotar-key` ni `npm run preparar-pagina`. El asistente despliega cuando revisó tu diff.
 - No cambies el logical ID `GastosTable`, su `TableName`, su `KeySchema` ni su `DeletionPolicy`.
 - No cambies el contrato de la API (rutas, status codes, nombres de campos) ni la lista de categorías.
 - No agregues dependencias nuevas a `package.json`.
@@ -24,5 +24,5 @@ Este repo es el starter de un workshop. Quien te pide algo aquí está aprendien
 
 ## Cuando termines
 
-- Corre `pnpm test` y `pnpm typecheck` y di qué pasó, incluidos los tests que siguen en rojo a propósito.
+- Corre `npm test` y `npm run typecheck` y di qué pasó, incluidos los tests que siguen en rojo a propósito.
 - Resume en una lista corta qué archivos cambiaste y por qué, para que el asistente sepa dónde mirar en el diff.

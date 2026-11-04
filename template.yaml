@@ -6,7 +6,7 @@ Parameters:
   VersionKey:
     Type: String
     Default: '1'
-    Description: Súbele uno para rotar la API key (lo hace pnpm rotar-key)
+    Description: Súbele uno para rotar la API key (lo hace npm run rotar-key)
 
 Globals:
   Function:
@@ -170,7 +170,7 @@ Outputs:
     Description: URL base de tu API
     Value: !Sub https://${GastosApi}.execute-api.${AWS::Region}.amazonaws.com/v1
   ApiKeyId:
-    Description: ID de la API key (el valor lo ves en la consola de API Gateway o con pnpm datos)
+    Description: ID de la API key (el valor lo ves en la consola de API Gateway o con npm run datos)
     Value: !Ref GastosApiKey
   TablaGastos:
     Description: Nombre de la tabla de DynamoDB

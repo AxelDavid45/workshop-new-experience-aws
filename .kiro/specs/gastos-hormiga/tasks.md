@@ -38,14 +38,14 @@ Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login a
   - Usa los helpers que ya existen en `src/shared/` (`db.ts`, `http.ts`, `validacion.ts`). No crees helpers nuevos.
   - No toques `template.yaml`: las rutas y los permisos ya están.
   - No toques `src/shared/validacion.ts`. El test `rechaza montos negativos` se queda en rojo, porque ese arreglo lo hace el asistente a mano.
-  - Al terminar, corre `pnpm test tests/gastos.test.ts`: todo tiene que pasar menos `rechaza montos negativos`.
+  - Al terminar, corre `npm test tests/gastos.test.ts`: todo tiene que pasar menos `rechaza montos negativos`.
   - _Requisitos: 1.1, 1.2, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3_
 
 - [ ] 2. Preparar la página para Amplify Hosting (módulo 6)
   - Crea `amplify.yml` siguiendo la sección **Página (tarea 2)** de `design.md`.
   - Solo crea ese archivo. No cambies `template.yaml`, `GastosTable`, la API, las Lambdas ni `web/`.
   - No conectes GitHub ni ejecutes deploys: eso lo hace el asistente desde la consola de Amplify después de revisar el diff.
-  - Al terminar, corre `pnpm typecheck`.
+  - Al terminar, corre `npm run typecheck`.
   - _Requisitos: 3.1, 3.2_
 
 - [ ]* 3. Login con Cognito (paso extra)
