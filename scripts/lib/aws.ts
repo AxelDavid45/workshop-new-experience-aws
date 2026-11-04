@@ -116,3 +116,13 @@ export async function versionDeAwsCli(): Promise<string | null> {
   const linea = await versionDe('aws', ['--version'])
   return linea?.match(/aws-cli\/(\d+\.\d+\.\d+)/)?.[1] ?? null
 }
+
+// Lee una opción que npm está usando en este repo (por ejemplo "min-release-age"), con el .npmrc incluido.
+export async function opcionDeNpm(clave: string): Promise<string | null> {
+  try {
+    const { stdout } = await promisify(exec)(`npm config get ${clave}`, { cwd: ROOT })
+    return stdout.trim() || null
+  } catch {
+    return null
+  }
+}

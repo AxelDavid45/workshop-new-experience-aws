@@ -53,7 +53,8 @@ Ruta: `GET /gastos`, abierto (sin API key).
 
 1. LA PÁGINA DEBE servirse por HTTPS desde la URL de la rama `main` en Amplify Hosting después de hacer push al repositorio de GitHub del asistente.
 2. El repo DEBE tener `amplify.yml` que publique `web/`.
-3. `web/config.js` DEBE apuntar a `ApiUrl` antes del push que publica la página.
+3. MIENTRAS `web/config.js` no exista, LA PÁGINA DEBE avisar que todavía no apunta a una API. La primera publicación de Amplify ocurre antes de desplegar la API.
+4. `web/config.js` DEBE apuntar a `ApiUrl` en un segundo push, después de desplegar la API.
 
 ### Requisito 4: Login con Cognito (paso extra)
 

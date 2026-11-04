@@ -2,9 +2,24 @@
 // Los gastos de prueba que crea se borran al terminar.
 
 import { execFile } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { CONFIG, ROOT, aws, esSesionVencida, pistaDeSesion, versionDe } from './lib/aws.ts'
+import {
+  AWS_CLI_MINIMO,
+  CONFIG,
+  NODE_MINIMO,
+  NPM_MINIMO,
+  ROOT,
+  aws,
+  esSesionVencida,
+  esVersionMinima,
+  opcionDeNpm,
+  pistaDeSesion,
+  versionDe,
+  versionDeAwsCli,
+  versionDeNpm,
+} from './lib/aws.ts'
 import { argumentos, aviso, falla, gris, ok, preguntar, titulo, verde } from './lib/consola.ts'
 import { pedir } from './lib/http.ts'
 import { describirStack, valorDeLaKey, type Salidas } from './lib/stack.ts'
@@ -119,38 +134,73 @@ const pruebasDeSesion: Prueba[] = [
   },
 ]
 
+// Los checkpoints que revisan tu página reciben su URL de Amplify.
+const PIDEN_URL = new Set(['2', '5'])
+
+const pruebasDePagina: Prueba[] = [
+  {
+    nombre: 'Tu página responde por Amplify Hosting',
+    correr: async () => {
+      const res = await pedir(paginaUrl!)
+      esperar(res.status === 200, `Respondió ${res.status}`, 'Revisa en Amplify que el build de main haya terminado en verde.')
+      esperar(res.texto.includes('Gastos hormiga'), 'La página no parece ser la de web/', 'Confirma que amplify.yml publique la carpeta web/.')
+    },
+  },
+]
+
 const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
   '0': {
     titulo: 'Arranque',
     pruebas: [
       {
-        nombre: 'Node.js 22 o superior',
+        nombre: `Node.js ${NODE_MINIMO} o superior`,
         correr: async () => {
           const mayor = Number(process.versions.node.split('.')[0])
-          esperar(mayor >= 22, `Tienes Node ${process.versions.node}`, 'Instala la versión LTS desde https://nodejs.org')
+          esperar(mayor >= NODE_MINIMO, `Tienes Node ${process.versions.node}`, 'Instala la versión LTS con nvm (mira "Antes del evento")')
           return `v${process.versions.node}`
+        },
+      },
+      {
+        nombre: `npm ${NPM_MINIMO} o superior`,
+        correr: async () => {
+          const v = await versionDeNpm()
+          esperar(!!v && esVersionMinima(v, NPM_MINIMO), `Tienes npm ${v ?? 'desconocido'}`, 'Actualízalo con: npm install -g npm@latest')
+          return v!
+        },
+      },
+      {
+        nombre: 'El .npmrc del repo protege tus instalaciones',
+        correr: async () => {
+          const scripts = await opcionDeNpm('ignore-scripts')
+          const edad = await opcionDeNpm('min-release-age')
+          esperar(
+            scripts === 'true' && edad === '7',
+            `npm dice ignore-scripts=${scripts} y min-release-age=${edad}`,
+            'Corre el comando desde la carpeta del repo y actualiza npm: npm install -g npm@latest',
+          )
+          return 'ignore-scripts y min-release-age=7'
         },
       },
       {
         nombre: 'Git instalado',
         correr: async () => {
           const v = await versionDe('git', ['--version'])
-          esperar(!!v, 'No encontré git', 'Instálalo desde https://git-scm.com')
+          esperar(!!v, 'No encontré git', 'Instálalo desde https://git-scm.com y abre una terminal nueva')
           return v
         },
       },
       {
-        nombre: 'AWS CLI (lo instala el Agent Toolkit en el módulo 3)',
-        suave: true,
+        nombre: `AWS CLI ${AWS_CLI_MINIMO} o superior`,
         correr: async () => {
-          const v = await versionDe('aws', ['--version'])
-          esperar(!!v, 'Todavía no tienes el AWS CLI', 'No pasa nada, se instala en el módulo 3')
-          return v.split(' ')[0]
+          const v = await versionDeAwsCli()
+          esperar(!!v, 'No encontré el AWS CLI', 'Instálalo como dice "Antes del evento" y abre una terminal nueva')
+          esperar(esVersionMinima(v, AWS_CLI_MINIMO), `Tienes la ${v}`, `aws login necesita la ${AWS_CLI_MINIMO} o superior: vuelve a instalarlo`)
+          return v
         },
       },
     ],
   },
-  '3': {
+  '1': {
     titulo: 'Kiro y AWS',
     pruebas: [
       ...pruebasDeSesion,
@@ -167,13 +217,34 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           return region
         },
       },
+    ],
+  },
+  '2': {
+    titulo: 'Tu página en Amplify',
+    pruebas: [
       {
-        nombre: 'Tienes al menos un budget',
+        nombre: 'amplify.yml publica la carpeta web/',
+        correr: async () => {
+          const archivo = path.join(ROOT, 'amplify.yml')
+          esperar(existsSync(archivo), 'No encontré amplify.yml en la raíz del repo', 'Haz la tarea 1 de la spec con Kiro (módulo 2)')
+          const texto = readFileSync(archivo, 'utf8')
+          esperar(/baseDirectory:\s*['"]?web\/?['"]?\s*$/m.test(texto), 'amplify.yml no tiene baseDirectory: web', 'Revisa que los artefactos salgan de la carpeta web/')
+        },
+      },
+      ...pruebasDePagina,
+    ],
+  },
+  '3': {
+    titulo: 'Créditos y budget',
+    pruebas: [
+      ...pruebasDeSesion,
+      {
+        nombre: 'Tienes el budget mensual de USD 10',
         correr: async () => {
           const { Account } = await aws<{ Account: string }>(['sts', 'get-caller-identity'])
           const r = await aws<{ Budgets?: { BudgetName: string }[] }>(['budgets', 'describe-budgets', '--account-id', Account], { region: 'us-east-1' })
           const nombres = (r.Budgets ?? []).map((b) => b.BudgetName)
-          esperar(nombres.includes('gastos-hormiga-10-usd'), 'No encontré el budget gastos-hormiga-10-usd', 'Crea el budget mensual de USD 10 desde el módulo 2')
+          esperar(nombres.includes('gastos-hormiga-10-usd'), 'No encontré el budget gastos-hormiga-10-usd', 'Crea el budget mensual de USD 10 (módulo 3)')
           return 'gastos-hormiga-10-usd'
         },
       },
@@ -185,6 +256,10 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
       {
         nombre: 'Los tests de tests/gastos.test.ts pasan',
         correr: () => correrTest('tests/gastos.test.ts'),
+      },
+      {
+        nombre: 'Los tests de tests/infra.test.ts pasan',
+        correr: () => correrTest('tests/infra.test.ts'),
       },
       ...pruebasDeSesion,
       { nombre: 'El stack existe y tiene la URL de tu API', correr: apiUrl },
@@ -202,7 +277,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           esperar(
             res.status !== 501,
             'Respondió 501: tu Lambda desplegada todavía es la versión vacía',
-            'Haz la tarea 1 de la spec con Kiro y vuelve a desplegar (módulo 4)',
+            'Haz la tarea 2 de la spec con Kiro y vuelve a desplegar (módulo 4)',
           )
           esperar(res.status === 201, `Respondió ${res.status}: ${res.texto.slice(0, 120)}`, 'Revisa los logs: aws logs tail /aws/lambda/gastos-hormiga-registrar --profile gastos-hormiga')
           esperar(!!res.json?.id, 'La respuesta no trae el id del gasto')
@@ -240,9 +315,18 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
     ],
   },
   '5': {
-    titulo: 'En tu teléfono',
+    titulo: 'Tu página conectada y tu teléfono',
     pruebas: [
       ...pruebasDeSesion,
+      ...pruebasDePagina,
+      {
+        nombre: 'La página sabe cuál es tu API',
+        correr: async () => {
+          const s = await salidas()
+          const res = await pedir(new URL('config.js', paginaUrl!).toString())
+          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre npm run preparar-pagina, haz commit y push a main. Espera a que Amplify termine el build.')
+        },
+      },
       {
         nombre: 'Entró al menos un gasto desde el Atajo',
         correr: async () => {
@@ -251,28 +335,6 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           const delAtajo = (res.json?.gastos ?? []).filter((g: { origen: string }) => g.origen === 'atajo')
           esperar(delAtajo.length > 0, 'No veo gastos con origen "atajo"', 'Revisa que tu Atajo mande el header x-origen: atajo')
           return `${delAtajo.length} gastos desde el Atajo`
-        },
-      },
-    ],
-  },
-  '6': {
-    titulo: 'Tu página de gastos',
-    pruebas: [
-      ...pruebasDeSesion,
-      {
-        nombre: 'Tu página responde por Amplify Hosting',
-        correr: async () => {
-          const res = await pedir(paginaUrl!)
-          esperar(res.status === 200, `Respondió ${res.status}`, 'Revisa en Amplify que el build de main haya terminado en verde.')
-          esperar(res.texto.includes('Gastos hormiga'), 'La página no parece ser la de web/', 'Confirma que amplify.yml publique la carpeta web/.')
-        },
-      },
-      {
-        nombre: 'La página sabe cuál es tu API',
-        correr: async () => {
-          const s = await salidas()
-          const res = await pedir(new URL('config.js', paginaUrl!).toString())
-          esperar(res.status === 200 && res.texto.includes(s.ApiUrl!), 'config.js no apunta a tu API', 'Corre npm run preparar-pagina, haz commit y push a main.')
         },
       },
     ],
@@ -332,15 +394,15 @@ async function main() {
 
   if (!modulo || !MODULOS[modulo]) {
     console.log(`Uso: npm run verify <${Object.keys(MODULOS).join('|')}>`)
-    console.log(gris('Los módulos 1 y 2 se revisan con npm run verify 3.'))
+    console.log(gris('Los módulos 2 y 5 también piden la URL de tu página: npm run verify 2 https://main.<app-id>.amplifyapp.com'))
     process.exitCode = 1
     return
   }
 
-  if (modulo === '6') {
+  if (PIDEN_URL.has(modulo)) {
     const url = posicionales[1]
     if (!url) {
-      console.log('Uso: npm run verify 6 https://main.<app-id>.amplifyapp.com')
+      console.log(`Uso: npm run verify ${modulo} https://main.<app-id>.amplifyapp.com`)
       console.log(gris('Copia la URL de tu rama main desde Amplify Hosting.'))
       process.exitCode = 1
       return

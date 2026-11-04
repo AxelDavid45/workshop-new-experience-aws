@@ -75,7 +75,17 @@ El stack publica estos tres outputs y `npm run verify N` depende de sus nombres.
 | `ApiKeyId`    | ID de la API key, no el valor   | `npm run datos`, `npm run verify`             |
 | `TablaGastos` | Nombre de `GastosTable`         | `npm run verify`, para borrar lo de prueba |
 
-### Gastos (tarea 1)
+### Página (tarea 1)
+
+Los archivos de la página ya existen en `web/` y no cambian. El asistente hace fork del starter en GitHub y conecta la rama `main` con Amplify Hosting desde la consola. Kiro solo prepara la configuración que vive en el repo:
+
+- `amplify.yml` en la raíz, que define `web/` como `baseDirectory` de los artefactos estáticos. No instala dependencias ni compila nada: la página ya viene lista.
+
+No se agregan recursos de hosting, outputs ni permisos a `infra/gastos-stack.ts`. No se modifica `web/` durante la tarea.
+
+Esta tarea va antes que la API. Amplify publica la página en el módulo 2 sin `web/config.js`, y `web/app.js` avisa que todavía no apunta a una API. Después de desplegar la API (módulo 4), el asistente corre `npm run preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push y vuelve a publicar la página. `npm run verify 2 <url-de-amplify>` revisa `amplify.yml` y que la página responda; `npm run verify 5 <url-de-amplify>` revisa además `config.js`.
+
+### Gastos (tarea 2)
 
 `src/handlers/registrar.ts` y `src/handlers/listar.ts` ya existen como versión vacía que responde 501. La tarea es escribir su cuerpo; el stack, los permisos y los helpers ya están listos.
 
@@ -96,16 +106,6 @@ El stack publica estos tres outputs y `npm run verify N` depende de sus nombres.
 - Lo compartido vive en `src/shared/`: `db.ts` (cliente y llaves), `http.ts` (`json`, `error`, `leerBody`, `header`), `categorias.ts` y `validacion.ts`.
 - La validación regresa `{ ok: true, valor }` o `{ ok: false, error }`, y el handler responde 400 con `{ "error": "..." }`.
 - Cada handler nuevo lleva su test en `tests/`, con `db.send` reemplazado por un mock (ver `tests/gastos.test.ts`).
-
-### Página (tarea 2)
-
-Los archivos de la página ya existen en `web/` y no cambian. El asistente hace fork del starter en GitHub y conecta la rama `main` con Amplify Hosting desde la consola. Kiro solo prepara la configuración que vive en el repo:
-
-- `amplify.yml` en la raíz, que define `web/` como `baseDirectory` de los artefactos estáticos. No instala dependencias ni compila nada: la página ya viene lista.
-
-No se agregan recursos de hosting, outputs ni permisos a `infra/gastos-stack.ts`. No se modifica `web/` durante la tarea.
-
-Después de la tarea, el asistente corre `npm run preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push, despliega la página y entrega una URL HTTPS. `npm run verify 6 <url-de-amplify>` revisa la página y `config.js`.
 
 ### Paso extra: login con Cognito (tarea 3)
 
