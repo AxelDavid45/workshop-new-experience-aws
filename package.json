@@ -2,14 +2,18 @@
   "name": "workshop-new-experience-aws",
   "version": "1.0.0",
   "private": true,
-  "description": "Workshop: app de gastos hormiga en AWS Free Tier (SAM, API Gateway, Lambda y DynamoDB)",
+  "description": "Workshop: app de gastos hormiga en AWS Free Tier (CDK, API Gateway, Lambda y DynamoDB)",
   "type": "module",
   "scripts": {
-    "build": "sam build",
-    "sync": "sam sync --watch",
+    "bootstrap": "cdk bootstrap",
+    "synth": "cdk synth --quiet",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy",
+    "sync": "cdk watch",
     "verify": "tsx scripts/verify.ts",
     "doctor": "tsx scripts/doctor.ts",
     "datos": "tsx scripts/datos.ts",
+    "probar": "tsx scripts/probar.ts",
     "preparar-pagina": "tsx scripts/preparar-pagina.ts",
     "limpiar": "tsx scripts/limpiar.ts",
     "limpiar-practica": "tsx scripts/limpiar-practica.ts",
@@ -20,18 +24,21 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.1146.0",
-    "@aws-sdk/lib-dynamodb": "3.1146.0"
+    "@aws-sdk/lib-dynamodb": "3.1146.0",
+    "aws-cdk-lib": "2.275.0",
+    "constructs": "10.8.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.164",
     "@types/node": "24.19.2",
+    "aws-cdk": "2.1146.1",
     "esbuild": "0.28.2",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "4.1.12"
   },
   "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "pnpm@11.5.0"
+    "node": ">=22",
+    "npm": ">=11.10.0"
+  }
 }

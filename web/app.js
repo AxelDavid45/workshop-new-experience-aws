@@ -1,8 +1,15 @@
 // Página sin build: config.js exporta la configuración pública.
+// config.js no está en git hasta que corres npm run preparar-pagina, así que la
+// primera versión que publica Amplify no lo tiene. Por eso se importa con try/catch.
 
-import * as config from './config.js'
+let config = {}
+try {
+  config = await import('./config.js')
+} catch {
+  // Todavía no existe config.js: la página avisa que falta conectarla.
+}
 
-const API = config.API_URL
+const API = config.API_URL ?? ''
 const COGNITO_CLIENT_ID = config.COGNITO_CLIENT_ID ?? ''
 const COGNITO_DOMAIN = config.COGNITO_DOMAIN ?? ''
 const TOKEN_KEY = 'gastos-id-token'
@@ -166,9 +173,14 @@ async function cargarGastos() {
 }
 
 if (!API) {
-  document.getElementById('gran-total').textContent = 'Falta config.js. Corre pnpm preparar-pagina.'
+  document.getElementById('gran-total').textContent = 'Tu página ya está publicada, pero todavía no apunta a una API.'
+  const fila = el('tr')
+  const celda = el('td', 'Despliega tu API (módulo 4) y corre npm run preparar-pagina para ver aquí tus gastos.')
+  celda.colSpan = 4
+  fila.append(celda)
+  document.getElementById('lista').replaceChildren(fila)
 } else if (!configuracionCognitoLista()) {
-  document.getElementById('gran-total').textContent = 'Falta configurar Cognito. Despliega el paso extra y vuelve a correr pnpm preparar-pagina.'
+  document.getElementById('gran-total').textContent = 'Falta configurar Cognito. Despliega el paso extra y vuelve a correr npm run preparar-pagina.'
 } else {
   cargarGastos()
 }

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Una app para registrar gastos hormiga desde la pantalla de bloqueo del teléfono y verlos en una página. Este documento es el contrato de la API: `pnpm verify N` lo revisa contra la API desplegada, así que si algo de aquí cambia, el verify deja de pasar.
+Una app para registrar gastos hormiga desde la pantalla de bloqueo del teléfono y verlos en una página. Este documento es el contrato de la API: `npm run verify N` lo revisa contra la API desplegada, así que si algo de aquí cambia, el verify deja de pasar.
 
 Categorías válidas en todo el documento: `cafes`, `snacks`, `transporte`, `suscripciones`, `otros`.
 
@@ -53,12 +53,13 @@ Ruta: `GET /gastos`, abierto (sin API key).
 
 1. LA PÁGINA DEBE servirse por HTTPS desde la URL de la rama `main` en Amplify Hosting después de hacer push al repositorio de GitHub del asistente.
 2. El repo DEBE tener `amplify.yml` que publique `web/`.
-3. `web/config.js` DEBE apuntar a `ApiUrl` antes del push que publica la página.
+3. MIENTRAS `web/config.js` no exista, LA PÁGINA DEBE avisar que todavía no apunta a una API. La primera publicación de Amplify ocurre antes de desplegar la API.
+4. `web/config.js` DEBE apuntar a `ApiUrl` en un segundo push, después de desplegar la API.
 
 ### Requisito 4: Login con Cognito (paso extra)
 
 1. `GET /gastos` DEBE pedir un token de Cognito en el header `Authorization`. Sin token responde 401.
 2. `POST /gastos` DEBE seguir con API key, para que el Atajo no se rompa.
-3. No DEBE haber registro abierto: los usuarios se crean con `pnpm crear-usuario`.
+3. No DEBE haber registro abierto: los usuarios se crean con `npm run crear-usuario`.
 4. La callback URL del app client DEBE recibir la URL HTTPS de la página de Amplify mediante el parámetro `FrontendUrl` del stack.
 5. LA PÁGINA DEBE iniciar sesión con el login administrado de Cognito y mandar el `IdToken` en el header `Authorization` al pedir la lista; los datos de la API se pintan sin `innerHTML`.

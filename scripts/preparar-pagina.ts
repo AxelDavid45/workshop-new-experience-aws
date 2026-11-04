@@ -1,4 +1,4 @@
-// pnpm preparar-pagina
+// npm run preparar-pagina
 // Escribe web/config.js con la URL de tu API y los valores públicos de Cognito.
 // Después lo agregas de forma explícita, haces commit y push; Amplify publica
 // la página.
@@ -19,7 +19,7 @@ async function main() {
   }
 
   const config = [
-    '// Lo genera pnpm preparar-pagina. No lo edites a mano.',
+    '// Lo genera npm run preparar-pagina. No lo edites a mano.',
     `export const API_URL = ${JSON.stringify(s.ApiUrl)}`,
     `export const COGNITO_DOMAIN = ${JSON.stringify(s.CognitoDomain ?? '')}`,
     `export const COGNITO_CLIENT_ID = ${JSON.stringify(s.UserPoolClientId ?? '')}`,
