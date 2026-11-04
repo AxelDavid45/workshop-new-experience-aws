@@ -6,6 +6,7 @@
 //   npm run probar 28 "galleta del súper" snacks    → tu propio gasto
 //   npm run probar 28 "galleta del súper" snacks atajo   → cuenta como gasto del Atajo
 //   npm run probar lista                            → solo pide la lista
+//   npm run probar negativo                         → manda un monto de -50 (módulo 4)
 
 import { argumentos, falla, gris, ok, titulo } from './lib/consola.ts'
 import { pedir } from './lib/http.ts'
@@ -14,7 +15,9 @@ import { salidasDelStack, valorDeLaKey } from './lib/stack.ts'
 async function main() {
   const { posicionales } = argumentos()
   const soloLista = posicionales[0] === 'lista'
-  const [monto = '45', descripcion = 'café de la esquina', categoria = 'cafes', origen = 'curl'] = posicionales
+  // "-50" como argumento lo leería npm como una bandera, así que el monto negativo es una palabra.
+  const args = posicionales[0] === 'negativo' ? ['-50', 'galleta', 'snacks'] : posicionales
+  const [monto = '45', descripcion = 'café de la esquina', categoria = 'cafes', origen = 'curl'] = args
 
   titulo('Probar tu API')
   const s = await salidasDelStack()
