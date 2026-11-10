@@ -1,8 +1,10 @@
 # Le dice a Amplify Hosting qué publicar. La página ya viene lista en web/,
 # así que no hay nada que instalar ni compilar.
 #
-# No agregues comandos de npm aquí. El npm de Amplify es más viejo que el que
-# pide package.json y engine-strict=true (en .npmrc) haría fallar el build.
+# No agregues comandos de npm aquí: no hacen falta y cada uno es una forma
+# más de romper el build. Amplify instala las dependencias por su cuenta
+# cuando ve package.json, así que el build tiene que pasar con el npm que
+# traiga su imagen; por eso "engines" solo pide Node y no una versión de npm.
 version: 1
 frontend:
   phases:
