@@ -75,17 +75,17 @@ El stack publica estos tres outputs y `npm run verify N` depende de sus nombres.
 | `ApiKeyId`    | ID de la API key, no el valor   | `npm run datos`, `npm run verify`             |
 | `TablaGastos` | Nombre de `GastosTable`         | `npm run verify`, para borrar lo de prueba |
 
-### Página (tarea 1)
+### Página
 
-Los archivos de la página ya existen en `web/` y no cambian. El asistente hace fork del starter en GitHub y conecta la rama `main` con Amplify Hosting desde la consola. Kiro solo prepara la configuración que vive en el repo:
+Los archivos de la página ya existen en `web/` y no cambian. El asistente hace fork del starter en GitHub y conecta la rama `main` con Amplify Hosting desde la consola. No hay tarea de Kiro para esto: la configuración que vive en el repo ya viene hecha.
 
-- `amplify.yml` en la raíz, que define `web/` como `baseDirectory` de los artefactos estáticos. No instala dependencias ni compila nada: la página ya viene lista.
+- `amplify.yml` en la raíz define `web/` como `baseDirectory` de los artefactos estáticos. No instala dependencias ni compila nada: la página ya viene lista. Tampoco corre npm, porque el npm de Amplify es más viejo que el que pide `package.json` (`engines`) y `engine-strict=true` en `.npmrc` haría fallar el build. `tests/amplify.test.ts` lo vigila.
 
-No se agregan recursos de hosting, outputs ni permisos a `infra/gastos-stack.ts`. No se modifica `web/` durante la tarea.
+No se agregan recursos de hosting, outputs ni permisos a `infra/gastos-stack.ts`.
 
-Esta tarea va antes que la API. Amplify publica la página en el módulo 2 sin `web/config.js`, y `web/app.js` avisa que todavía no apunta a una API. Después de desplegar la API (módulo 4), el asistente corre `npm run preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push y vuelve a publicar la página. `npm run verify 2 <url-de-amplify>` revisa `amplify.yml` y que la página responda; `npm run verify 5 <url-de-amplify>` revisa además `config.js`.
+Amplify publica la página en el módulo 2 sin `web/config.js`, y `web/app.js` avisa que todavía no apunta a una API. Después de desplegar la API (módulo 4), el asistente corre `npm run preparar-pagina`. Ese comando escribe `web/config.js` con una constante `API_URL` que `web/app.js` importa como módulo. El archivo está ignorado para no subirlo por accidente: después de revisar que solo contiene la URL pública de la API, el asistente usa `git add -f web/config.js`, hace commit y push a `main`. Amplify detecta el push y vuelve a publicar la página. `npm run verify 2 <url-de-amplify>` revisa `amplify.yml` y que la página responda; `npm run verify 5 <url-de-amplify>` revisa además `config.js`.
 
-### Gastos (tarea 2)
+### Gastos (tarea 1)
 
 `src/handlers/registrar.ts` y `src/handlers/listar.ts` ya existen como versión vacía que responde 501. La tarea es escribir su cuerpo; el stack, los permisos y los helpers ya están listos.
 
@@ -107,7 +107,7 @@ Esta tarea va antes que la API. Amplify publica la página en el módulo 2 sin `
 - La validación regresa `{ ok: true, valor }` o `{ ok: false, error }`, y el handler responde 400 con `{ "error": "..." }`.
 - Cada handler nuevo lleva su test en `tests/`, con `db.send` reemplazado por un mock (ver `tests/gastos.test.ts`).
 
-### Paso extra: login con Cognito (tarea 3)
+### Paso extra: login con Cognito (tarea 2)
 
 - Un `UserPool` con `selfSignUpEnabled: false` (solo el administrador crea usuarios), un app client sin secreto con `authFlows.userPassword` (lo usan `npm run crear-usuario` y `npm run verify cognito`), `preventUserExistenceErrors: true` y un `CognitoUserPoolsAuthorizer` en `GastosApi`. El `POST /gastos` sigue con `apiKeyRequired: true` y sin autorizador. El stack recibe `FrontendUrl` como `CfnParameter` para usar la URL HTTPS de Amplify en la callback. Outputs nuevos: `UserPoolId`, `UserPoolClientId`.
 - **Límite del ejercicio:** la tabla usa una sola partición `GASTOS`, así que Cognito demuestra autenticación de `GET` para una persona, no aislamiento de datos entre usuarios. Un producto multiusuario debe particionar por el claim `sub` y autorizar también las escrituras.
