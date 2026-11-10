@@ -19,6 +19,7 @@ Si vas a tomar el taller, empieza por la sección "Antes del evento" del sitio. 
 | `src/`                        | Las Lambdas en TypeScript. Las de gastos están vacías: las escribe Kiro en el módulo 4 |
 | `tests/`                      | Tests con Vitest. Varios están en rojo a propósito                                     |
 | `web/`                        | La página de tus gastos                                                                |
+| `amplify.yml`                 | Le dice a Amplify Hosting que publique `web/`. No corre npm a propósito                |
 | `.kiro/specs/gastos-hormiga/` | La spec: requisitos, diseño y las tareas que le pides a Kiro                           |
 | `.kiro/steering/`             | Las reglas de Kiro en este repo: qué no puede tocar y cómo instala paquetes            |
 | `scripts/`                    | `npm run verify`, `npm run doctor`, `npm run limpiar-practica` y los demás             |
@@ -30,8 +31,9 @@ Necesitas Node.js LTS, npm 11.10 o superior, Git y el AWS CLI. El sitio explica 
 
 ```bash
 npm ci
-npm run verify 0
 ```
+
+Los checkpoints (`npm run verify N`) necesitan una sesión de AWS, así que se corren durante el taller, desde el módulo 1.
 
 ## Comandos
 
@@ -39,7 +41,7 @@ Todos se corren con `npm run <comando>` desde la raíz del repo y funcionan igua
 
 | Comando                         | Qué hace                                                                   |
 | ------------------------------- | -------------------------------------------------------------------------- |
-| `npm run verify <N>`            | El checkpoint del módulo N (`0`, `1`, `2 <url>`, `3`, `4`, `5 <url>`)      |
+| `npm run verify <N>`            | El checkpoint del módulo N (`1`, `2 <url>`, `3`, `4`, `5 <url>`)           |
 | `npm run doctor`                | Versiones, sesión de AWS, bootstrap, stack y días restantes del Free Tier  |
 | `npm run bootstrap`             | Prepara tu cuenta y Región para CDK. Se hace una sola vez                  |
 | `npm run synth`                 | Genera la plantilla de CloudFormation sin desplegar nada                   |
@@ -57,9 +59,8 @@ Todos se corren con `npm run <comando>` desde la raíz del repo y funcionan igua
 
 | Rama            | Qué tiene                                                                                          |
 | --------------- | -------------------------------------------------------------------------------------------------- |
-| `main`          | El punto de partida del módulo 0                                                                   |
-| `modulo-2`      | Módulo 2 terminado: `amplify.yml` para publicar la página con Amplify Hosting                      |
-| `modulo-4`      | Módulo 4 terminado: lo de `modulo-2`, las Lambdas de gastos escritas y los montos negativos rechazados |
+| `main`          | El punto de partida, con `amplify.yml` listo para publicar la página                               |
+| `modulo-4`      | Módulo 4 terminado: las Lambdas de gastos escritas y los montos negativos rechazados               |
 | `extra-cognito` | Paso extra experimental: login con Cognito y callback de Amplify; no es una solución de producción |
 
 `GastosTable` tiene el mismo logical ID y nombre en todas las ramas, así que cambiar de rama y volver a desplegar actualiza tu stack sin borrar tus gastos.

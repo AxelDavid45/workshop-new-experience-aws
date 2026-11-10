@@ -4,52 +4,45 @@
 
 Cada tarea es un módulo del workshop. Quien la ejecuta está aprendiendo y va a leer el diff antes de aceptarlo, así que haz cambios chicos y fáciles de revisar. No corras comandos de deploy en ninguna tarea.
 
+La página en Amplify Hosting no es una tarea: `amplify.yml` ya viene en el repo y el asistente la publica en el módulo 2, después de conectar Kiro con AWS en el módulo 1.
+
 ## Task Dependency Graph
 
-Las tareas 1 y 2 son independientes. La tarea 3 necesita las dos: agrega login al backend de la tarea 2 y usa la URL de la página que queda lista con la tarea 1.
+La tarea 2 necesita la 1: agrega login al backend de las Lambdas de la tarea 1 y usa la URL de la página que el asistente ya publicó en Amplify.
 
 ```json
 {
   "waves": [
     {
       "wave": 1,
-      "tasks": [1, 2],
+      "tasks": [1],
       "dependsOn": []
     },
     {
       "wave": 2,
-      "tasks": [3],
-      "dependsOn": [1, 2]
+      "tasks": [2],
+      "dependsOn": [1]
     }
   ]
 }
 ```
 
 ```text
-1 ─┐
-   ├──> 3
-2 ─┘
+1 ──> 2
 ```
 
 ## Tasks
 
-- [ ] 1. Preparar la página para Amplify Hosting (módulo 2)
-  - Crea `amplify.yml` siguiendo la sección **Página (tarea 1)** de `design.md`.
-  - Solo crea ese archivo. No cambies `infra/gastos-stack.ts`, `GastosTable`, la API, las Lambdas ni `web/`.
-  - No conectes GitHub ni ejecutes deploys: eso lo hace el asistente desde la consola de Amplify después de revisar el diff.
-  - Al terminar, corre `npm run typecheck`.
-  - _Requisitos: 3.1, 3.2_
-
-- [ ] 2. Escribir las Lambdas de gastos (módulo 4)
-  - Escribe el cuerpo de `src/handlers/registrar.ts` y `src/handlers/listar.ts` siguiendo la sección **Gastos (tarea 2)** de `design.md`. Hoy los dos responden 501.
+- [ ] 1. Escribir las Lambdas de gastos (módulo 4)
+  - Escribe el cuerpo de `src/handlers/registrar.ts` y `src/handlers/listar.ts` siguiendo la sección **Gastos (tarea 1)** de `design.md`. Hoy los dos responden 501.
   - Usa los helpers que ya existen en `src/shared/` (`db.ts`, `http.ts`, `validacion.ts`). No crees helpers nuevos.
   - No toques `infra/gastos-stack.ts`: las rutas y los permisos ya están.
   - No toques `src/shared/validacion.ts`. El test `rechaza montos negativos` se queda en rojo, porque ese arreglo lo hace el asistente a mano.
   - Al terminar, corre `npm test tests/gastos.test.ts`: todo tiene que pasar menos `rechaza montos negativos`.
   - _Requisitos: 1.1, 1.2, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3_
 
-- [ ]* 3. Login con Cognito (paso extra)
-  - Sigue **Paso extra: login con Cognito (tarea 3)** de `design.md`: agrega el parámetro `FrontendUrl`, un `UserPool` sin registro abierto, un app client sin secreto con `authFlows.userPassword`, `preventUserExistenceErrors: true` y esa URL como callback, y un `CognitoUserPoolsAuthorizer` en `GastosApi` para `GET /gastos`.
+- [ ]* 2. Login con Cognito (paso extra)
+  - Sigue **Paso extra: login con Cognito (tarea 2)** de `design.md`: agrega el parámetro `FrontendUrl`, un `UserPool` sin registro abierto, un app client sin secreto con `authFlows.userPassword`, `preventUserExistenceErrors: true` y esa URL como callback, y un `CognitoUserPoolsAuthorizer` en `GastosApi` para `GET /gastos`.
   - El `POST /gastos` sigue solo con API key. Este ejercicio no separa datos por usuario: no lo presentes como una solución multiusuario.
   - Agrega los outputs `UserPoolId` y `UserPoolClientId`.
   - Actualiza `web/app.js` para iniciar sesión con el login administrado de Cognito y mandar el token en el header `Authorization`, sin usar `innerHTML` con datos de la API.
