@@ -73,7 +73,7 @@ El `.npmrc` de este repo activa estas protecciones cuando corres npm dentro de l
 - `min-release-age=7`: npm no instala versiones publicadas hace menos de 7 días. Necesita npm 11.10 o superior (`npm install -g npm@latest`).
 - `save-exact=true`: `package.json` guarda versiones exactas, sin `^` ni `~`.
 - `allow-git=none` y `allow-remote=none`: solo se instala desde el registro de npm.
-- `engine-strict=true`: falla si tu Node o tu npm no cumplen `engines`.
+- `engine-strict=true`: falla si tu Node no cumple `engines`. `engines` no pide una versión de npm, porque Amplify construye con el npm de su propia imagen; `npm run verify 1` es quien revisa que tengas 11.10 o superior.
 
 Para instalar lo que ya está en el lockfile usa `npm ci`. Si Kiro agrega un paquete, `.kiro/steering/npm-seguro.md` le pide escribir las banderas completas y revisar el paquete antes.
 
