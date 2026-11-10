@@ -39,6 +39,7 @@ interface Prueba {
   nombre: string
   correr: () => Promise<string | void> // regresa un detalle opcional para mostrar
   suave?: boolean // si falla solo avisa, no tumba el checkpoint
+  requiereUrl?: boolean // se salta si no mandaste la URL de tu página
 }
 
 function esperar(condicion: boolean, mensaje: string, pista?: string): asserts condicion {
@@ -134,12 +135,15 @@ const pruebasDeSesion: Prueba[] = [
   },
 ]
 
-// Los checkpoints que revisan tu página reciben su URL de Amplify.
-const PIDEN_URL = new Set(['2', '5'])
+// Los checkpoints que revisan tu página reciben su URL de Amplify. En el 2 es opcional:
+// sin URL revisa tu laptop y amplify.yml, con URL revisa también la página.
+const PIDEN_URL = new Set(['5'])
+const URL_OPCIONAL = new Set(['2'])
 
 const pruebasDePagina: Prueba[] = [
   {
     nombre: 'Tu página responde por Amplify Hosting',
+    requiereUrl: true,
     correr: async () => {
       const res = await pedir(paginaUrl!)
       esperar(res.status === 200, `Respondió ${res.status}`, 'Revisa en Amplify que el build de main haya terminado en verde.')
@@ -149,8 +153,8 @@ const pruebasDePagina: Prueba[] = [
 ]
 
 const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
-  '0': {
-    titulo: 'Arranque',
+  '1': {
+    titulo: 'Kiro y AWS',
     pruebas: [
       {
         nombre: `Node.js ${NODE_MINIMO} o superior`,
@@ -198,11 +202,6 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           return v
         },
       },
-    ],
-  },
-  '1': {
-    titulo: 'Kiro y AWS',
-    pruebas: [
       ...pruebasDeSesion,
       {
         nombre: `La Región del perfil es ${CONFIG.region}`,
@@ -226,7 +225,11 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
         nombre: 'amplify.yml publica la carpeta web/',
         correr: async () => {
           const archivo = path.join(ROOT, 'amplify.yml')
-          esperar(existsSync(archivo), 'No encontré amplify.yml en la raíz del repo', 'Haz la tarea 1 de la spec con Kiro (módulo 2)')
+          esperar(
+            existsSync(archivo),
+            'No encontré amplify.yml en la raíz del repo',
+            'Viene en el starter. En GitHub elige Sync fork > Update branch y corre git pull',
+          )
           const texto = readFileSync(archivo, 'utf8')
           esperar(/baseDirectory:\s*['"]?web\/?['"]?\s*$/m.test(texto), 'amplify.yml no tiene baseDirectory: web', 'Revisa que los artefactos salgan de la carpeta web/')
         },
@@ -277,7 +280,7 @@ const MODULOS: Record<string, { titulo: string; pruebas: Prueba[] }> = {
           esperar(
             res.status !== 501,
             'Respondió 501: tu Lambda desplegada todavía es la versión vacía',
-            'Haz la tarea 2 de la spec con Kiro y vuelve a desplegar (módulo 4)',
+            'Haz la tarea 1 de la spec con Kiro y vuelve a desplegar (módulo 4)',
           )
           esperar(res.status === 201, `Respondió ${res.status}: ${res.texto.slice(0, 120)}`, 'Revisa los logs: aws logs tail /aws/lambda/gastos-hormiga-registrar --profile gastos-hormiga')
           esperar(!!res.json?.id, 'La respuesta no trae el id del gasto')
@@ -392,21 +395,28 @@ async function main() {
   const { posicionales } = argumentos()
   const modulo = posicionales[0]
 
-  if (!modulo || !MODULOS[modulo]) {
-    console.log(`Uso: npm run verify <${Object.keys(MODULOS).join('|')}>`)
-    console.log(gris('Los módulos 2 y 5 también piden la URL de tu página: npm run verify 2 https://main.<app-id>.amplifyapp.com'))
+  if (modulo === '0') {
+    console.log('El checkpoint 0 ya no existe. Los módulos empiezan en 1: corre npm run verify 1')
     process.exitCode = 1
     return
   }
 
-  if (PIDEN_URL.has(modulo)) {
-    const url = posicionales[1]
-    if (!url) {
-      console.log(`Uso: npm run verify ${modulo} https://main.<app-id>.amplifyapp.com`)
-      console.log(gris('Copia la URL de tu rama main desde Amplify Hosting.'))
-      process.exitCode = 1
-      return
-    }
+  if (!modulo || !MODULOS[modulo]) {
+    console.log(`Uso: npm run verify <${Object.keys(MODULOS).join('|')}>`)
+    console.log(gris('Los módulos 2 y 5 también aceptan la URL de tu página: npm run verify 2 https://main.<app-id>.amplifyapp.com'))
+    process.exitCode = 1
+    return
+  }
+
+  const url = posicionales[1]
+  if (PIDEN_URL.has(modulo) && !url) {
+    console.log(`Uso: npm run verify ${modulo} https://main.<app-id>.amplifyapp.com`)
+    console.log(gris('Copia la URL de tu rama main desde Amplify Hosting.'))
+    process.exitCode = 1
+    return
+  }
+
+  if (url && (PIDEN_URL.has(modulo) || URL_OPCIONAL.has(modulo))) {
     try {
       const pagina = new URL(url)
       if (pagina.protocol !== 'https:') throw new Error('La URL debe usar HTTPS')
@@ -423,6 +433,7 @@ async function main() {
 
   let primeraFalla: string | undefined
   for (const prueba of pruebas) {
+    if (prueba.requiereUrl && !paginaUrl) continue
     try {
       const detalle = await prueba.correr()
       ok(`${prueba.nombre}${detalle ? gris(` (${detalle})`) : ''}`)
@@ -443,6 +454,9 @@ async function main() {
   if (primeraFalla) {
     console.log(`\nTodavía no. Revisa el "Si te atoraste" del módulo ${modulo} en el sitio.`)
     process.exitCode = 1
+  } else if (URL_OPCIONAL.has(modulo) && !paginaUrl) {
+    console.log(`\n${verde('✅ amplify.yml publica web/.')}`)
+    console.log(gris('Cuando Amplify publique tu página, corre: npm run verify 2 https://main.<app-id>.amplifyapp.com'))
   } else {
     console.log(`\n${verde('✅ Checkpoint ' + modulo + ' completo.')}`)
   }
